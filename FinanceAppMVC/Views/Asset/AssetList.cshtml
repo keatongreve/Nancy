@@ -1,0 +1,30 @@
+﻿@model IEnumerable<FinanceAppMVC.Models.Asset>
+@{
+    var ajaxOptions = new AjaxOptions
+    {
+        UpdateTargetId = "asset_list",
+        Confirm = "Are you sure you want to delete this asset?",
+        HttpMethod = "POST"
+    };
+}
+
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Symbol)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Symbol)
+        </td>
+        <td>
+            @Ajax.ActionLink("Delete", "Delete", "Asset", new { id = item.ID }, ajaxOptions) 
+        </td>
+    </tr>
+}
+
+</table>

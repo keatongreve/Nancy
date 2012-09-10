@@ -44,6 +44,6 @@ C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\b
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\bin\DotNetOpenAuth.OAuth.xml
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.xml
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.RelyingParty.xml
-C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.dll
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.pdb
+C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache

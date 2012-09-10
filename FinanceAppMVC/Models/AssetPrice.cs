@@ -8,9 +8,6 @@ namespace FinanceAppMVC.Models
 {
     public class AssetPrice
     {
-        [Key]
-        public int ID { get; set; }
-        public int AssetID { get; set; }
         public double Price { get; set; }
         public DateTime Date { get; set; }
     }

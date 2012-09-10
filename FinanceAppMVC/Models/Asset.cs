@@ -10,8 +10,7 @@ namespace FinanceAppMVC.Models
     {
         [Key]
         public int ID { get; set; }
+        public int UserID { get; set; }
         public string Symbol { get; set; }
-        public DateTime StartDate { get; set; }
-        public ICollection<AssetPrice> AssetPrices { get; set; }
     }
 }
