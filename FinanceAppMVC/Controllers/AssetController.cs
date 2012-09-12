@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using FinanceAppMVC.Models;
 using System.Web.Security;
+using System.Net;
 
 namespace FinanceAppMVC.Controllers
 {
@@ -18,8 +19,7 @@ namespace FinanceAppMVC.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                int userID = (int) Membership.GetUser().ProviderUserKey;
-                return PartialView("AssetList", db.Assets.Where(a => a.UserID == userID).ToList());
+                return PartialView("AssetList", db.Assets.ToList());
             }
             else
             {
@@ -38,7 +38,6 @@ namespace FinanceAppMVC.Controllers
         {
             if (ModelState.IsValid && User.Identity.IsAuthenticated)
             {
-                asset.UserID = (int) Membership.GetUser().ProviderUserKey;
                 db.Assets.Add(asset);
                 db.SaveChanges();
             }
@@ -59,6 +58,79 @@ namespace FinanceAppMVC.Controllers
         {
             db.Dispose();
             base.Dispose(disposing);
+        }
+
+        private List<Quote> getQuotes(String ticker, DateTime startDate, DateTime endDate)
+        {
+            String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + "&a=" + (startDate.Month - 1)
+                + "&b=" + startDate.Day + "&c=" + startDate.Year + "&d=" + (endDate.Month - 1)
+                + "&e=" + endDate.Day + "&f=" + endDate.Year + "&g=d&ignore=.csv";
+
+            using (WebClient client = new WebClient())
+            {
+                String csv = client.DownloadString(url);
+                char[] delims = {',', '\n'};
+                String[] quotes = csv.Split(delims);
+                List<Quote> quotesList = new List<Quote>();
+                for (int i = 7; i < quotes.Length - 1; i += 7)
+                {
+                    String date = quotes[i];
+                    String openPrice = quotes[i + 1];
+                    String closePrice = quotes[i + 6];
+                    quotesList.Add(new Quote(date, openPrice, closePrice));
+                }
+                return quotesList;
+
+            }
+        }
+    }
+
+    public class Quote
+    {
+        private DateTime date;
+        private double openPrice;
+        private double closePrice;
+
+        public Quote(String dateString, String openPriceString, String closePriceString)
+        {
+            setDate(dateString);
+            setOpenPrice(openPriceString);
+            setClosePrice(closePriceString);
+        }
+
+        public void setDate(String dateString)
+        {
+            char[] delims = {'-'};
+            String[] dateInfo = dateString.Split(delims);
+            int year = Int32.Parse(dateInfo[0]);
+            int month = Int32.Parse(dateInfo[1]);
+            int day = Int32.Parse(dateInfo[2]);
+            date = new DateTime(year, month, day);
+        }
+
+        public DateTime getDate()
+        {
+            return date;
+        }
+
+        public void setOpenPrice(String price)
+        {
+            openPrice = Double.Parse(price);
+        }
+
+        public Double getOpenPrice()
+        {
+            return openPrice;
+        }
+
+        public void setClosePrice(String price)
+        {
+            closePrice = Double.Parse(price);
+        }
+
+        public Double getClosePrice()
+        {
+            return closePrice;
         }
     }
 }
