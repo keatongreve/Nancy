@@ -22,6 +22,9 @@
             @Html.DisplayFor(modelItem => item.Symbol)
         </td>
         <td>
+            @Html.ActionLink("Details", "Details", new { id = item.ID})
+        </td>
+        <td>
             @Ajax.ActionLink("Delete", "Delete", "Asset", new { id = item.ID }, ajaxOptions) 
         </td>
     </tr>

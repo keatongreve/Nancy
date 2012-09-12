@@ -2,22 +2,11 @@
     ViewBag.Title = "Finance App Home Page";
 }
 
-@if (User.Identity.IsAuthenticated)
-{
-    <h2>My Assets</h2>
-    <div id="asset_list">
-        @Html.Action("AssetList", "Asset")
-    </div>
-    <div id="create_form">
-        @Html.Action("Create", "Asset")
-    </div>
-}
-else
-{
-    <div>
-        Please
-        @Html.ActionLink("log in", "Login", "Account")
-        to use this site.
-    </div>
-}
+<h2>My Assets</h2>
+<div id="asset_list">
+    @Html.Action("AssetList", "Asset")
+</div>
+<div id="create_form">
+    @Html.Action("Create", "Asset")
+</div>
 

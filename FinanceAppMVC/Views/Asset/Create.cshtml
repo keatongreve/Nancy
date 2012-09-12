@@ -65,7 +65,6 @@
             <input type="text" id="SymbolInput" />
             @Html.ValidationMessageFor(model => model.Symbol)
             @Html.HiddenFor(model => model.Symbol, new { id = "Symbol" })
-            @Html.HiddenFor(model => model.Name, new { id = "Name" })
         </div>
 
         <input id="add_asset" type="submit" value="Add Asset" />
