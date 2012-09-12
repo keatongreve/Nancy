@@ -5,9 +5,55 @@
     var options = new AjaxOptions {
       Url = Url.Action("Create", "Asset"),
       UpdateTargetId = "asset_list",
-      HttpMethod = "POST"       
+      HttpMethod = "POST"
     };
 }
+
+<script type="text/javascript">
+
+    var myResp = {};
+    var YAHOO = { Finance: { SymbolSuggest: {} } };
+
+    $(document).ready(function () {
+
+        $("#add_asset").click(function () {
+            $("#SymbolInput").val("");
+        });
+
+        $("#SymbolInput").autocomplete({
+            source: function (request, response) {
+                myResp = response;
+                yahooURL = "http://d.yimg.com/autoc.finance.yahoo.com/autoc";
+                $.ajax({
+                    url: yahooURL,
+                    type: "GET",
+                    data: { query: request.term },
+                    dataType: "JSONP",
+                    jsonpCallback: "YAHOO.Finance.SymbolSuggest.ssCallback",
+                    crossDomain: true,
+                    success: function (data) {
+                        console.log("yay");
+                    }
+                });
+            },
+            select: function (event, ui) {
+                symbol = ui.item.value;
+                $("#Symbol").val(symbol.substring(0, symbol.indexOf("-") - 1));
+                $("#Name").val(symbol.substring(symbol.indexOf("-") + 2));
+            }
+        });
+
+        YAHOO.Finance.SymbolSuggest.ssCallback = function (response) {
+            data = response.ResultSet.Result;
+            var suggestions = [];
+            $.each(data, function (i, val) {
+                suggestions.push(val.symbol + " - " + val.name);
+            });
+            myResp(suggestions);
+        }
+
+    });
+</script>
 
 @using (Ajax.BeginForm(options)) {
     @Html.ValidationSummary(true)
@@ -16,11 +62,13 @@
         <legend>Asset</legend>
 
         <div class="editor-field">
-            @Html.EditorFor(model => model.Symbol)
+            <input type="text" id="SymbolInput" />
             @Html.ValidationMessageFor(model => model.Symbol)
+            @Html.HiddenFor(model => model.Symbol, new { id = "Symbol" })
+            @Html.HiddenFor(model => model.Name, new { id = "Name" })
         </div>
 
-        <input type="submit" value="Add Asset" />
+        <input id="add_asset" type="submit" value="Add Asset" />
 
     </fieldset>
 }
