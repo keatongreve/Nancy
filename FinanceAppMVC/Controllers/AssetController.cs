@@ -41,17 +41,13 @@ namespace FinanceAppMVC.Controllers
         public ActionResult Details(int id, String date = "")
         {
             Asset asset = db.Assets.Find(id);
+            DateTime startDate;
             if (date == "")
-            {
-                asset.Prices = getQuotes(asset.Symbol, DateTime.Today.Subtract(System.TimeSpan.FromDays(7)), DateTime.Today);
-                ViewBag.date = DateTime.Today.Subtract(System.TimeSpan.FromDays(7)).ToString("yyyy-MM-dd");
-            }
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
             else
-            {
-                DateTime startDate = DateTime.Parse(date);
-                asset.Prices = getQuotes(asset.Symbol, startDate, DateTime.Today);
-                ViewBag.date = startDate.ToString("yyyy-MM-dd");
-            }
+                startDate = DateTime.Parse(date);
+            asset.Prices = getQuotes(asset.Symbol, startDate, DateTime.Today);
+            ViewBag.Date = startDate.ToString("yyyy-MM-dd");
             return View("Details", asset);
         }
 
@@ -99,55 +95,6 @@ namespace FinanceAppMVC.Controllers
                 return assetPrices;
 
             }
-        }
-    }
-
-    public class Quote
-    {
-        private DateTime date;
-        private double openPrice;
-        private double closePrice;
-
-        public Quote(String dateString, String openPriceString, String closePriceString)
-        {
-            setDate(dateString);
-            setOpenPrice(openPriceString);
-            setClosePrice(closePriceString);
-        }
-
-        public void setDate(String dateString)
-        {
-            char[] delims = {'-'};
-            String[] dateInfo = dateString.Split(delims);
-            int year = Int32.Parse(dateInfo[0]);
-            int month = Int32.Parse(dateInfo[1]);
-            int day = Int32.Parse(dateInfo[2]);
-            date = new DateTime(year, month, day);
-        }
-
-        public DateTime getDate()
-        {
-            return date;
-        }
-
-        public void setOpenPrice(String price)
-        {
-            openPrice = Double.Parse(price);
-        }
-
-        public Double getOpenPrice()
-        {
-            return openPrice;
-        }
-
-        public void setClosePrice(String price)
-        {
-            closePrice = Double.Parse(price);
-        }
-
-        public Double getClosePrice()
-        {
-            return closePrice;
         }
     }
 }
