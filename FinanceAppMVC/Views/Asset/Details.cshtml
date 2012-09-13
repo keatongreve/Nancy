@@ -2,27 +2,106 @@
 
 @{
     ViewBag.Title = "Details";
+    var prices = Model.Prices;
+    int a = 0;
 }
 
-<h2>Details</h2>
+<script src="/Scripts/highcharts.js" type="text/javascript"></script>
 
-<fieldset>
-    <legend>Asset</legend>
+<script type="text/javascript">
+    var chart1; // globally available
+    $(document).ready(function () {
+        $("#date").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#date").val("@ViewBag.date");
+            chart1 = new Highcharts.Chart({
+                chart: {
+                    renderTo: 'container',
+                    zoomType: 'x',
+                    spacingRight: 20
+                },
 
-    <div class="display-label">
-         @Html.DisplayNameFor(model => model.Symbol)
-    </div>
-    <div class="display-field">
-        @Html.DisplayFor(model => model.Symbol)
-    </div>
+                title: {
+                    text: '@Model.Symbol Prices'
+                },
 
-    @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
-    {
-        <p>@p.Date: Open @p.OpenPrice Close @p.ClosePrice</p>
-    }
+                subtitle: {
+                    text: 'Click and drag in the plot area to zoom in'
+                },
 
-</fieldset>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+                tooltip: {
+                    shared: true
+                },
+
+                legend: {
+                    enabled: false
+                },
+
+                xAxis: {
+                    maxZoom: 24*3600*1000*5,
+                    type: 'datetime'
+                },
+
+                yAxis: {
+                    title: {
+                        text: 'Stock Price'
+                    },
+
+                    startOnTick: false,
+                    showFirstLabel: false
+                },
+
+                plotOptions: {
+                    area: {
+                        fillColor: {
+                            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                            stops: [
+                                [0, Highcharts.getOptions().colors[0]],
+                                [1, 'rgba(2,0,0,0)']
+                            ]
+                        },
+                        lineWidth: 1,
+                        marker: {
+                            enabled: false,
+                            states: {
+                                hover: {
+                                    enabled: true,
+                                    radius: 5
+                                }
+                            }
+                        },
+                        shadow: false,
+                        states: {
+                            hover: {
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                },
+
+                series: [{
+                    type: 'area',
+                    pointStart: Date.UTC(@Model.Prices.Select(p => p.Date).First().Year, (@Model.Prices.Select(p => p.Date).First().Month - 1),
+                            @Model.Prices.Select(p => p.Date).First().Day),
+                    pointInterval: 24*3600*1000,
+                    name: '@Model.Symbol',
+                    data: [@foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
+                       {
+                           @p.ClosePrice <text>,</text>
+                       }
+                    ]
+                }]
+            });
+    });
+</script>
+
+<h2>@Model.Symbol</h2>
+
+@using (Html.BeginForm("Details", "Asset", FormMethod.Get))
+{
+<div class="editor-field">
+@Html.Label("Pick starting date: ")
+@Html.TextBox("date", null, new { id = "date" })
+</div>
+<input type="submit" value="See prices" />
+}
+<div id="container" style="width: 100%; padding: 10px 0px; height: 400px"></div>

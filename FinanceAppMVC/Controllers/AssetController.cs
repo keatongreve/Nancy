@@ -43,14 +43,15 @@ namespace FinanceAppMVC.Controllers
             Asset asset = db.Assets.Find(id);
             if (date == "")
             {
-                asset.Prices = new List<AssetPrice>();
+                asset.Prices = getQuotes(asset.Symbol, DateTime.Today.Subtract(System.TimeSpan.FromDays(7)), DateTime.Today);
+                ViewBag.date = DateTime.Today.Subtract(System.TimeSpan.FromDays(7)).ToString("yyyy-MM-dd");
             }
             else
             {
                 DateTime startDate = DateTime.Parse(date);
                 asset.Prices = getQuotes(asset.Symbol, startDate, DateTime.Today);
+                ViewBag.date = startDate.ToString("yyyy-MM-dd");
             }
-            
             return View("Details", asset);
         }
 
@@ -94,7 +95,7 @@ namespace FinanceAppMVC.Controllers
                         ClosePrice = closePrice
                     });
                 }
-
+                assetPrices = assetPrices.OrderBy(p => p.Date).ToList();
                 return assetPrices;
 
             }
