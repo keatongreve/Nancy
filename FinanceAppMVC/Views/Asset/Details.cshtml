@@ -4,25 +4,24 @@
     ViewBag.Title = "Details";
 }
 
-<h2>Details</h2>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#date").datepicker({ dateFormat: "yy-mm-dd" });
+    });
+</script>
 
-<fieldset>
-    <legend>Asset</legend>
+<h2>@Model.Symbol</h2>
 
-    <div class="display-label">
-         @Html.DisplayNameFor(model => model.Symbol)
+@using (Html.BeginForm("Details", "Asset", FormMethod.Get))
+{
+    <div class="editor-field">
+        @Html.Label("Pick starting date: ")
+        @Html.TextBox("date", null, new { id = "date" })
     </div>
-    <div class="display-field">
-        @Html.DisplayFor(model => model.Symbol)
-    </div>
+    <input type="submit" value="See prices" />
+}
 
-    @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
-    {
-        <p>@p.Date: Open @p.OpenPrice Close @p.ClosePrice</p>
-    }
-
-</fieldset>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id=Model.ID }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+@foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
+{
+    <span>@p.Date: Open @p.OpenPrice Close @p.ClosePrice</span><br />
+}

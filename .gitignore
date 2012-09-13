@@ -3,3 +3,5 @@
 *.ldf
 *.dll
 *.pdb
+FinanceAppMVC/bin/*
+FinanceAppMVC/obj/*
