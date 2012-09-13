@@ -1,5 +1,5 @@
 # git ignore file
-*.mdf
-*.ldf
-*.dll
-*.pdb
+FinanceAppMVC/App_Data/*.mdf
+FinanceAppMVC/App_Data/*.ldf
+FinanceAppMVC/obj/Debug/*.dll
+FinanceAppMVC/obj/Debug/*.pdb

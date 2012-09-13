@@ -144,3 +144,4 @@ C:\Users\Danny\Documents\financeapp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.Rely
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.dll
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.pdb
+C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
