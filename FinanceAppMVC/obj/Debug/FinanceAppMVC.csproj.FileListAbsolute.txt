@@ -47,7 +47,6 @@ C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\b
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.dll
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.pdb
 C:\Users\Keaton\Documents\Visual Studio 2012\Projects\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
-<<<<<<< HEAD
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\bin\FinanceAppMVC.dll
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\bin\FinanceAppMVC.pdb
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\bin\Antlr3.Runtime.dll
@@ -96,7 +95,6 @@ C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.xml
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.RelyingParty.xml
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\obj\Debug\FinanceAppMVC.dll
 C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\obj\Debug\FinanceAppMVC.pdb
-=======
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\bin\FinanceAppMVC.dll
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\bin\FinanceAppMVC.pdb
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\bin\Antlr3.Runtime.dll
@@ -146,5 +144,3 @@ C:\Users\Danny\Documents\financeapp\FinanceAppMVC\bin\DotNetOpenAuth.OpenId.Rely
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.dll
 C:\Users\Danny\Documents\financeapp\FinanceAppMVC\obj\Debug\FinanceAppMVC.pdb
->>>>>>> 5af29480eccceffd689e8a39f49ad206c23483cd
-C:\Users\Keaton\Desktop\FinanceApp\FinanceAppMVC\obj\Debug\FinanceAppMVC.csprojResolveAssemblyReference.cache
