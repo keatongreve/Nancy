@@ -37,13 +37,20 @@ namespace FinanceAppMVC.Controllers
             return AssetList();
         }
 
-        // GET: /Asset/Details/5
-        public ActionResult Details(int id)
+        // GET: /Asset/Details/5?date=...
+        public ActionResult Details(int id, String date = "")
         {
             Asset asset = db.Assets.Find(id);
-            asset.Prices = new List<AssetPrice> {
-                new AssetPrice { Date = new DateTime(2012, 9, 1), Price = 100.00 }
-            };
+            if (date == "")
+            {
+                asset.Prices = new List<AssetPrice>();
+            }
+            else
+            {
+                DateTime startDate = DateTime.Parse(date);
+                asset.Prices = getQuotes(asset.Symbol, startDate, DateTime.Today);
+            }
+            
             return View("Details", asset);
         }
 
@@ -63,7 +70,7 @@ namespace FinanceAppMVC.Controllers
             base.Dispose(disposing);
         }
 
-        private List<Quote> getQuotes(String ticker, DateTime startDate, DateTime endDate)
+        private List<AssetPrice> getQuotes(String ticker, DateTime startDate, DateTime endDate)
         {
             String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + "&a=" + (startDate.Month - 1)
                 + "&b=" + startDate.Day + "&c=" + startDate.Year + "&d=" + (endDate.Month - 1)
@@ -74,15 +81,21 @@ namespace FinanceAppMVC.Controllers
                 String csv = client.DownloadString(url);
                 char[] delims = {',', '\n'};
                 String[] quotes = csv.Split(delims);
-                List<Quote> quotesList = new List<Quote>();
+                List<AssetPrice> assetPrices = new List<AssetPrice>();
                 for (int i = 7; i < quotes.Length - 1; i += 7)
                 {
-                    String date = quotes[i];
-                    String openPrice = quotes[i + 1];
-                    String closePrice = quotes[i + 6];
-                    quotesList.Add(new Quote(date, openPrice, closePrice));
+                    DateTime date = DateTime.Parse(quotes[i]);
+                    double openPrice = Double.Parse(quotes[i + 1]);
+                    double closePrice = Double.Parse(quotes[i + 6]);
+                    assetPrices.Add(new AssetPrice
+                    {
+                        Date = date,
+                        OpenPrice = openPrice,
+                        ClosePrice = closePrice
+                    });
                 }
-                return quotesList;
+
+                return assetPrices;
 
             }
         }

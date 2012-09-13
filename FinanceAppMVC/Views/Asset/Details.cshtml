@@ -18,7 +18,7 @@
 
     @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
     {
-        <p>@p.Price - @p.Date</p>
+        <p>@p.Date: Open @p.OpenPrice Close @p.ClosePrice</p>
     }
 
 </fieldset>

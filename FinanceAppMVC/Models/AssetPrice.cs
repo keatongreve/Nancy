@@ -9,7 +9,8 @@ namespace FinanceAppMVC.Models
     public class AssetPrice
     {
         public int ID { get; set; }
-        public double Price { get; set; }
+        public double OpenPrice { get; set; }
+        public double ClosePrice { get; set; }
         public DateTime Date { get; set; }
     }
 }
