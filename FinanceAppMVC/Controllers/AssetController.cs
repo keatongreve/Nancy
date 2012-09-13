@@ -17,18 +17,7 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult AssetList()
         {
-<<<<<<< HEAD
             return PartialView("AssetList", db.Assets.ToList());
-=======
-            if (User.Identity.IsAuthenticated)
-            {
-                return PartialView("AssetList", db.Assets.ToList());
-            }
-            else
-            {
-                return PartialView("AssetList");
-            }
->>>>>>> 5af29480eccceffd689e8a39f49ad206c23483cd
         }
 
         public ActionResult Create()
