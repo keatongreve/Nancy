@@ -14,6 +14,7 @@ namespace FinanceAppMVC.Models
         [Required]
         public string Symbol { get; set; }
 
+
         public List<AssetPrice> Prices { get; set; }
     }
 }

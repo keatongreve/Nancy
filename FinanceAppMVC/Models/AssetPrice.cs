@@ -11,6 +11,8 @@ namespace FinanceAppMVC.Models
         public int ID { get; set; }
         public double OpenPrice { get; set; }
         public double ClosePrice { get; set; }
+        public double SimpleRateOfReturn { get; set; }
+        public double LogRateOfReturn { get; set; }
         public DateTime Date { get; set; }
     }
 }

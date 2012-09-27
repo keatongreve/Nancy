@@ -88,7 +88,9 @@ namespace FinanceAppMVC.Controllers
                     {
                         Date = date,
                         OpenPrice = openPrice,
-                        ClosePrice = closePrice
+                        ClosePrice = closePrice,
+                        SimpleRateOfReturn = (closePrice - openPrice) / openPrice,
+                        LogRateOfReturn = Math.Log(closePrice / openPrice)
                     });
                 }
                 assetPrices = assetPrices.OrderBy(p => p.Date).ToList();
