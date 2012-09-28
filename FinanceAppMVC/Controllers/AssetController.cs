@@ -54,12 +54,13 @@ namespace FinanceAppMVC.Controllers
             asset.annualizedMeanRate = asset.dailyMeanRate * 252;
 
             double aggregateVariance = 0;
-            asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.dailyMeanRate, 2));
+            double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count);
+            asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.ClosePrice - meanStockPrice, 2));
             asset.dailyVariance = aggregateVariance / (asset.Prices.Count - 1);
             asset.annualizedVariance = asset.dailyVariance * 252;
 
             asset.dailyStdDev = Math.Sqrt(asset.dailyVariance);
-            asset.annualizedStdDev = asset.dailyStdDev * 252;
+            asset.annualizedStdDev = asset.dailyStdDev * Math.Sqrt(252);
 
 
             ViewBag.Date = startDate.ToString("yyyy-MM-dd");
