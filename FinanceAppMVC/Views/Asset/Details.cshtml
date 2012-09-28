@@ -71,7 +71,7 @@
                 },
                 series: [{
                     type: 'area',
-                    pointStart: Date.UTC(@StartDate.Year, @(StartDate.Month - 1), @StartDate.Day),
+                    pointStart: Date.UTC(@(StartDate.Year), @(StartDate.Month - 1), @(StartDate.Day)),
                     pointInterval: 24*3600*1000,
                     name: '@Model.Symbol',
                     data: [
@@ -240,6 +240,39 @@
         @Html.TextBox("date", null, new { id = "date" })
     </div>
     <input type="submit" value="See prices" />
+    
+    <table border="1" width="100%">
+        <tr>
+            <th>Daily Mean Rate of Return</th>
+            <th>Annualized Mean Rate of Return</th>
+            <th>Daily Variance</th>
+            <th>Annualized Variance</th>
+            <th>Daily Standard Deviation</th>
+            <th>Annualized Standard Deviation</th>
+        </tr>
+        <tr>
+            @{
+                if (Model.Prices.Count < 252)
+                {
+                    <td>@(Math.Round(Model.dailyMeanRate, 4)*100)%</td>
+                    <td>N/A</td>
+                    <td>@(Math.Round(Model.dailyVariance, 4)*100)%</td>
+                    <td>N/A</td>
+                    <td>@(Math.Round(Model.dailyStdDev, 4)*100)%</td>
+                    <td>N/A</td>
+            }
+                else
+                {
+                    <td>@(Math.Round(Model.dailyMeanRate, 4)*100)%</td>
+                    <td>@(Math.Round(Model.annualizedMeanRate, 4)*100)%</td>
+                    <td>@(Math.Round(Model.dailyVariance, 4)*100)%</td>
+                    <td>@(Math.Round(Model.annualizedVariance, 4)*100)%</td>
+                    <td>@(Math.Round(Model.dailyStdDev, 4)*100)%</td>
+                    <td>@(Math.Round(Model.annualizedStdDev, 4)*100)%</td>
+            }
+            }
+        </tr>
+    </table>
 }
 <div id="quotesContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
 <div id="simpleReturnContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
