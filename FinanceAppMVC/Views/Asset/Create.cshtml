@@ -5,7 +5,9 @@
     var options = new AjaxOptions {
       Url = Url.Action("Create", "Asset"),
       UpdateTargetId = "asset_list",
-      HttpMethod = "POST"
+      HttpMethod = "POST",
+      LoadingElementId = "loader",
+      OnSuccess="$('#Symbol').val('');"
     };
 }
 
@@ -16,11 +18,7 @@
 
     $(document).ready(function () {
 
-        $("#add_asset").click(function () {
-            $("#SymbolInput").val("");
-        });
-
-        $("#SymbolInput").autocomplete({
+        /*$("#SymbolInput").autocomplete({
             source: function (request, response) {
                 myResp = response;
                 yahooURL = "http://d.yimg.com/autoc.finance.yahoo.com/autoc";
@@ -50,7 +48,7 @@
                 suggestions.push(val.symbol + " - " + val.name);
             });
             myResp(suggestions);
-        }
+        }*/
 
     });
 </script>
@@ -62,12 +60,13 @@
         <legend>Asset</legend>
 
         <div class="editor-field">
-            <input type="text" id="SymbolInput" />
             @Html.ValidationMessageFor(model => model.Symbol)
-            @Html.HiddenFor(model => model.Symbol, new { id = "Symbol" })
+            @Html.EditorFor(model => model.Symbol)
         </div>
 
         <input id="add_asset" type="submit" value="Add Asset" />
+
+        <div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>
 
     </fieldset>
 }

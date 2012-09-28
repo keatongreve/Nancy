@@ -10,7 +10,6 @@ namespace FinanceAppMVC.Models
     {
         [Key]
         public int ID { get; set; }
-
         [Required]
         public string Symbol { get; set; }
         public double dailyMeanRate { get; set; }

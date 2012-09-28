@@ -16,16 +16,14 @@
         <header>
             <div class="content-wrapper">
                 <div class="float-left">
-                    <p class="site-title">
-                        <a href="@Url.Action("Index", "Home")">
-                            <img src='@Url.Content("~/Images/logo.png")' />
-                        </a>
-                    </p>
+                    <a href="@Url.Action("Index", "Home")">
+                        <img style="float:left" src='@Url.Content("~/Images/logo.png")' />                        
+                    </a>
+                    <a href="@Url.Action("Index", "Home")" style="text-decoration:none">
+                        Nancy Financial Portfolio Manager
+                    </a>
                 </div>
                 <div class="float-right">
-                    <section id="login">
-                        @Html.Partial("_LoginPartial")
-                    </section>
                     <nav>
                         <ul id="menu">
                             <li>@Html.ActionLink("Home", "Index", "Home")</li>

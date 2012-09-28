@@ -31,6 +31,7 @@ namespace FinanceAppMVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                asset.Prices = getQuotes(asset.Symbol);
                 db.Assets.Add(asset);
                 db.SaveChanges();
             }
@@ -40,7 +41,7 @@ namespace FinanceAppMVC.Controllers
         // GET: /Asset/Details/5?date=...
         public ActionResult Details(int id, String date = "")
         {
-            Asset asset = db.Assets.Find(id);
+            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
 
             if (date == "")
@@ -48,14 +49,17 @@ namespace FinanceAppMVC.Controllers
             else
                 startDate = DateTime.Parse(date);
 
-            asset.Prices = getQuotes(asset.Symbol, startDate, DateTime.Today);
+            /* Temporarily replace the asset's prices (all prices) with a list of prices starting 
+             * from the requested date. This does not affect anything in the database. */
+            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+            asset.Prices = queriedPrices;
 
-            asset.dailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
+            asset.dailyMeanRate = queriedPrices.Sum(p => p.SimpleRateOfReturn) / (queriedPrices.Count - 1);
             asset.annualizedMeanRate = asset.dailyMeanRate * 252;
 
             double aggregateVariance = 0;
             asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.dailyMeanRate, 2));
-            asset.dailyVariance = aggregateVariance / (asset.Prices.Count - 1);
+            asset.dailyVariance = aggregateVariance / (queriedPrices.Count - 1);
             asset.annualizedVariance = asset.dailyVariance * 252;
 
             asset.dailyStdDev = Math.Sqrt(asset.dailyVariance);
@@ -70,7 +74,8 @@ namespace FinanceAppMVC.Controllers
         [HttpPost]
         public ActionResult Delete(int id)
         {
-            Asset asset = db.Assets.Find(id);
+            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
+            asset.Prices.Clear();
             db.Assets.Remove(asset);
             db.SaveChanges();
             return AssetList();
@@ -82,10 +87,11 @@ namespace FinanceAppMVC.Controllers
             base.Dispose(disposing);
         }
 
-        private List<AssetPrice> getQuotes(String ticker, DateTime startDate, DateTime endDate)
+        private List<AssetPrice> getQuotes(String ticker)
         {
-            String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + "&a=" + (startDate.Month - 1)
-                + "&b=" + startDate.Day + "&c=" + startDate.Year + "&d=" + (endDate.Month - 1)
+            DateTime endDate = DateTime.Today;
+            String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + 
+                "&d=" + (endDate.Month - 1)
                 + "&e=" + endDate.Day + "&f=" + endDate.Year + "&g=d&ignore=.csv";
 
             using (WebClient client = new WebClient())
