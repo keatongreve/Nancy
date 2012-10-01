@@ -29,30 +29,27 @@
         <th>
             Asset
         </th>
-        <th>
-            Volatility
-        </th>
+        <th>Annualized Mean Rate</th>
+        <th>Annualized Std Dev</th>
         <th>
             Risk Allocation %
         </th>
     </tr>
 @foreach (var asset in Model)
 {
-    double maxPrice = asset.Prices.Max(p => p.ClosePrice);
-    double minPrice = asset.Prices.Min(p => p.ClosePrice);
-    double P = Math.Pow(Math.Log(maxPrice/minPrice), 2);
-    double volatility = Math.Sqrt(P * 252);
     <tr>
         <td>
             @Html.DisplayFor(modelItem => asset.Symbol)
         </td>
         <td>
-            @(String.Format("{0:F4}", volatility))
-
+            @(String.Format("{0:P2}", asset.AnnualizedMeanRate))
+        </td>
+        <td>
+            @(String.Format("{0:P2}", asset.AnnualizedStandardDeviation))
         </td>
         <td>
             @{
-                double riskAlloc = (1 / volatility) / ViewBag.TotalInverseVolatility;
+                double riskAlloc = (1 / asset.AnnualizedStandardDeviation) / ViewBag.TotalInverseVolatility;
                 totalRiskAlloc += riskAlloc;
             }
             @(String.Format("{0:P2}", riskAlloc))

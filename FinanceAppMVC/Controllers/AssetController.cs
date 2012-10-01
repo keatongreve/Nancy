@@ -84,12 +84,28 @@ namespace FinanceAppMVC.Controllers
                 startDate = DateTime.Parse(date);
 
             double totalInverseVolatility = 0;
-            foreach (Asset a in assets)
+            foreach (Asset asset in assets)
             {
-                List<AssetPrice> prices = a.Prices.Where(p => p.Date >= startDate).ToList();
-                a.Prices = prices;
-                double P = Math.Pow(Math.Log(prices.Max(ap => ap.ClosePrice) / prices.Min(ap => ap.ClosePrice)), 2);
-                totalInverseVolatility += (1 / Math.Sqrt(P * 252));
+                List<AssetPrice> prices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+                asset.Prices = prices;
+
+                asset.DailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
+                asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
+
+                double aggregateVariance = 0;
+                double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count - 1);
+                foreach (AssetPrice p in prices)
+                {
+                    aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.DailyMeanRate, 2);
+                }
+
+                asset.DailyVariance = aggregateVariance / (asset.Prices.Count - 1);
+                asset.AnnualizedVariance = asset.DailyVariance * 252;
+
+                asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
+                asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
+
+                totalInverseVolatility += (1 / asset.AnnualizedStandardDeviation);
             }
 
             ViewBag.Date = startDate;
@@ -118,6 +134,7 @@ namespace FinanceAppMVC.Controllers
         {
             DateTime endDate = DateTime.Today;
             String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + 
+                "&a=0&b=1&c=2000" +
                 "&d=" + (endDate.Month - 1)
                 + "&e=" + endDate.Day + "&f=" + endDate.Year + "&g=d&ignore=.csv";
 
