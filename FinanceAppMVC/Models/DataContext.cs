@@ -15,5 +15,12 @@ namespace FinanceAppMVC.Models
         }
 
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<AssetPrice> AssetPrices { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Asset>().HasMany<AssetPrice>(a => a.Prices).WithRequired(p => p.Asset).HasForeignKey(p => p.AssetID);
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

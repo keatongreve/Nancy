@@ -85,6 +85,10 @@ packages
 csx
 *.build.csdef
 
+# Database files and log files
+*.mdf
+*.ldf
+
 # Others
 [Bb]in
 [Oo]bj

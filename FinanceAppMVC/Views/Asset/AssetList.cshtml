@@ -17,7 +17,8 @@
         <th></th>
     </tr>
 
-@foreach (var item in Model) {
+@foreach (var item in Model) 
+{
     <tr>
         <td>
             @Html.DisplayFor(modelItem => item.Symbol)
@@ -32,3 +33,11 @@
 }
 
 </table>
+
+@if (Model.Count() > 0)
+{
+    using (Html.BeginForm("RiskAnalysis", "Asset", FormMethod.Get))
+    {
+        <input type="submit" value="View Risk Analysis" />
+    }
+}

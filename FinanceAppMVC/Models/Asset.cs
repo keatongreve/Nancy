@@ -12,13 +12,12 @@ namespace FinanceAppMVC.Models
         public int ID { get; set; }
         [Required]
         public string Symbol { get; set; }
-        public double dailyMeanRate { get; set; }
-        public double annualizedMeanRate { get; set; }
-        public double dailyVariance { get; set; }
-        public double annualizedVariance { get; set; }
-        public double dailyStdDev { get; set; }
-        public double annualizedStdDev { get; set; }
-
+        public double DailyMeanRate { get; set; }
+        public double AnnualizedMeanRate { get; set; }
+        public double DailyVariance { get; set; }
+        public double AnnualizedVariance { get; set; }
+        public double DailyStandardDeviation { get; set; }
+        public double AnnualizedStandardDeviation { get; set; }
         public List<AssetPrice> Prices { get; set; }
     }
 }

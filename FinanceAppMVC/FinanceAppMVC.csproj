@@ -290,6 +290,7 @@
     <Content Include="Views\Asset\AssetList.cshtml" />
     <Content Include="Views\Asset\Create.cshtml" />
     <Content Include="Views\Asset\Details.cshtml" />
+    <Content Include="Views\Asset\RiskAnalysis.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

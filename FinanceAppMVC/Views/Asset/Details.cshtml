@@ -2,7 +2,7 @@
 
 @{
     ViewBag.Title = "Details";
-    DateTime StartDate = DateTime.Parse(ViewBag.Date);
+    DateTime StartDate = ViewBag.Date;
 }
 
 <script src="/Scripts/highcharts.js" type="text/javascript"></script>
@@ -254,21 +254,21 @@
             @{
                 if (Model.Prices.Count < 252)
                 {
-                    <td>@(Math.Round(Model.dailyMeanRate, 4)*100)%</td>
+                    <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
                     <td>N/A</td>
-                    <td>@(Math.Round(Model.dailyVariance, 4)*100)%</td>
+                    <td>@String.Format("{0:N}", Model.DailyVariance)</td>
                     <td>N/A</td>
-                    <td>@(Math.Round(Model.dailyStdDev, 4)*100)%</td>
+                    <td>@String.Format("{0:C}", Model.DailyStandardDeviation)</td>
                     <td>N/A</td>
             }
                 else
                 {
-                    <td>@(Math.Round(Model.dailyMeanRate, 4)*100)%</td>
-                    <td>@(Math.Round(Model.annualizedMeanRate, 4)*100)%</td>
-                    <td>@(Math.Round(Model.dailyVariance, 4)*100)%</td>
-                    <td>@(Math.Round(Model.annualizedVariance, 4)*100)%</td>
-                    <td>@(Math.Round(Model.dailyStdDev, 4)*100)%</td>
-                    <td>@(Math.Round(Model.annualizedStdDev, 4)*100)%</td>
+                    <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
+                    <td>@String.Format("{0:P}", Model.AnnualizedMeanRate)</td>
+                    <td>@String.Format("{0:N}", Model.DailyVariance)</td>
+                    <td>@String.Format("{0:N}", Model.AnnualizedVariance)</td>
+                    <td>@String.Format("{0:C}", Model.DailyStandardDeviation)</td>
+                    <td>@String.Format("{0:C}", Model.AnnualizedStandardDeviation)</td>
             }
             }
         </tr>

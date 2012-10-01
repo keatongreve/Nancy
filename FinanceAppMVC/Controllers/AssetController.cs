@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using FinanceAppMVC.Models;
 using System.Web.Security;
 using System.Net;
+using System.Diagnostics;
 
 namespace FinanceAppMVC.Controllers
 {
@@ -39,6 +40,7 @@ namespace FinanceAppMVC.Controllers
         }
 
         // GET: /Asset/Details/5?date=...
+        [OutputCache(Duration = 3600, VaryByParam = "date")]
         public ActionResult Details(int id, String date = "")
         {
             Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
@@ -50,24 +52,50 @@ namespace FinanceAppMVC.Controllers
                 startDate = DateTime.Parse(date);
 
             /* Temporarily replace the asset's prices (all prices) with a list of prices starting 
-             * from the requested date. This does not affect anything in the database. */
-            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+             * from the requested date. This does not affect anything in the database. */            
+            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();            
             asset.Prices = queriedPrices;
 
-            asset.dailyMeanRate = queriedPrices.Sum(p => p.SimpleRateOfReturn) / (queriedPrices.Count - 1);
-            asset.annualizedMeanRate = asset.dailyMeanRate * 252;
+            asset.DailyMeanRate = queriedPrices.Sum(p => p.SimpleRateOfReturn) / (queriedPrices.Count - 1);
+            asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
 
             double aggregateVariance = 0;
-            asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.dailyMeanRate, 2));
-            asset.dailyVariance = aggregateVariance / (queriedPrices.Count - 1);
-            asset.annualizedVariance = asset.dailyVariance * 252;
+            double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count);
+            asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.ClosePrice - meanStockPrice, 2));
+            asset.DailyVariance = aggregateVariance / (asset.Prices.Count - 1);
+            asset.AnnualizedVariance = asset.DailyVariance * 252;
 
-            asset.dailyStdDev = Math.Sqrt(asset.dailyVariance);
-            asset.annualizedStdDev = asset.dailyStdDev * 252;
+            asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
+            asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
 
+            ViewBag.Date = startDate;
 
-            ViewBag.Date = startDate.ToString("yyyy-MM-dd");
             return View("Details", asset);
+        }
+
+        public ActionResult RiskAnalysis(String date = "")
+        {
+            List<Asset> assets = db.Assets.Include(a => a.Prices).ToList();
+            DateTime startDate;
+
+            if (date == "")
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
+            else
+                startDate = DateTime.Parse(date);
+
+            double totalInverseVolatility = 0;
+            foreach (Asset a in assets)
+            {
+                List<AssetPrice> prices = a.Prices.Where(p => p.Date >= startDate).ToList();
+                a.Prices = prices;
+                double P = Math.Pow(Math.Log(prices.Max(ap => ap.ClosePrice) / prices.Min(ap => ap.ClosePrice)), 2);
+                totalInverseVolatility += (1 / Math.Sqrt(P * 252));
+            }
+
+            ViewBag.Date = startDate;
+            ViewBag.TotalInverseVolatility = totalInverseVolatility;
+
+            return View("RiskAnalysis", assets);
         }
 
         // POST: /Asset/Delete/5
@@ -75,7 +103,6 @@ namespace FinanceAppMVC.Controllers
         public ActionResult Delete(int id)
         {
             Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
-            asset.Prices.Clear();
             db.Assets.Remove(asset);
             db.SaveChanges();
             return AssetList();

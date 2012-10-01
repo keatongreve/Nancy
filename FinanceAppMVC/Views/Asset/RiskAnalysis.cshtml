@@ -1,0 +1,69 @@
+﻿@model IEnumerable<FinanceAppMVC.Models.Asset>
+
+@{
+    ViewBag.Title = "Risk Analysis";
+    DateTime StartDate = ViewBag.Date;
+    double totalRiskAlloc = 0;
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#date").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#date").val("@StartDate.ToString("yyyy-MM-dd")");
+    });
+</script>
+
+<h2>Risk Analysis</h2>
+
+@using (Html.BeginForm("RiskAnalysis", "Asset", FormMethod.Get))
+{
+    <div class="editor-field">
+        @Html.Label("Pick starting date: ")
+        @Html.TextBox("date", null, new { id = "date" })
+    </div>
+    <input type="submit" value="See prices" />
+}
+
+<table>
+    <tr>
+        <th>
+            Asset
+        </th>
+        <th>
+            Volatility
+        </th>
+        <th>
+            Risk Allocation %
+        </th>
+    </tr>
+@foreach (var asset in Model)
+{
+    double maxPrice = asset.Prices.Max(p => p.ClosePrice);
+    double minPrice = asset.Prices.Min(p => p.ClosePrice);
+    double P = Math.Pow(Math.Log(maxPrice/minPrice), 2);
+    double volatility = Math.Sqrt(P * 252);
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => asset.Symbol)
+        </td>
+        <td>
+            @(String.Format("{0:F4}", volatility))
+
+        </td>
+        <td>
+            @{
+                double riskAlloc = (1 / volatility) / ViewBag.TotalInverseVolatility;
+                totalRiskAlloc += riskAlloc;
+            }
+            @(String.Format("{0:P2}", riskAlloc))
+        </td>
+    </tr>
+}
+    <tr>
+        <td></td>
+        <td></td>     
+        <td>
+            @(String.Format("{0:P2}", totalRiskAlloc))
+        </td>
+    </tr>
+</table>
