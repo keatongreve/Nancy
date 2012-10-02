@@ -87,6 +87,10 @@ namespace FinanceAppMVC.Controllers
             foreach (Asset asset in assets)
             {
                 List<AssetPrice> prices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+
+                prices[0].SimpleRateOfReturn = 0;
+                prices[0].LogRateOfReturn = 0;
+
                 asset.Prices = prices;
 
                 asset.DailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
