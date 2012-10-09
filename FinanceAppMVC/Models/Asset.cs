@@ -18,6 +18,8 @@ namespace FinanceAppMVC.Models
         public double AnnualizedVariance { get; set; }
         public double DailyStandardDeviation { get; set; }
         public double AnnualizedStandardDeviation { get; set; }
+        public double SharpeRatio { get; set; }
+        public double Beta { get; set; }
         public List<AssetPrice> Prices { get; set; }
     }
 }

@@ -56,17 +56,63 @@ namespace FinanceAppMVC.Controllers
             List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();            
             asset.Prices = queriedPrices;
 
-            asset.DailyMeanRate = queriedPrices.Sum(p => p.SimpleRateOfReturn) / (queriedPrices.Count - 1);
+            asset.DailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
             asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
 
             double aggregateVariance = 0;
-            double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count);
-            asset.Prices.ForEach(p => aggregateVariance += Math.Pow(p.ClosePrice - meanStockPrice, 2));
+            double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count - 1);
+            foreach (AssetPrice p in queriedPrices)
+            {
+                aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.DailyMeanRate, 2);
+            }
+
             asset.DailyVariance = aggregateVariance / (asset.Prices.Count - 1);
             asset.AnnualizedVariance = asset.DailyVariance * 252;
 
             asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
             asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
+
+            List<AssetPrice> StandardAndPoor = getQuotes("^GSPC");
+            StandardAndPoor = StandardAndPoor.Where(p => p.Date >= startDate).ToList();
+            double sumDiffReturn = 0;
+            for (int i = 0; i < queriedPrices.Count; i++)
+            {
+                sumDiffReturn += queriedPrices[i].SimpleRateOfReturn - StandardAndPoor[i].SimpleRateOfReturn;
+            }
+
+            sumDiffReturn = sumDiffReturn / queriedPrices.Count;
+
+            double sumVariance = 0;
+
+            for (int i = 0; i < queriedPrices.Count; i++)
+            {
+                sumVariance += Math.Pow((queriedPrices[i].SimpleRateOfReturn - StandardAndPoor[i].SimpleRateOfReturn) - sumDiffReturn, 2);
+            }
+
+            double stdDevReturn = Math.Sqrt(sumVariance / (queriedPrices.Count - 1));
+
+            asset.SharpeRatio = sumDiffReturn / stdDevReturn;
+
+            List<AssetPrice> treasuryRate = getQuotes("^TNX");
+            treasuryRate = treasuryRate.Where(p => p.Date >= startDate).ToList();
+
+            double meanTreasuryRate = treasuryRate.Sum(p => p.SimpleRateOfReturn) / (treasuryRate.Count - 1);
+            double covariance = 0;
+            for (int i = 0; i < treasuryRate.Count; i++)
+            {
+                covariance += (queriedPrices[i].SimpleRateOfReturn - asset.DailyMeanRate) * (treasuryRate[i].SimpleRateOfReturn - meanTreasuryRate);
+            }
+
+            covariance = covariance / (queriedPrices.Count - 1);
+            aggregateVariance = 0;
+            foreach (AssetPrice p in treasuryRate)
+            {
+                aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.DailyMeanRate, 2);
+            }
+
+            double variance = aggregateVariance / (treasuryRate.Count - 1);
+
+            asset.Beta = covariance / variance;
 
             ViewBag.Date = startDate;
 

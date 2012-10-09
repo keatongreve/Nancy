@@ -249,6 +249,8 @@
             <th>Annualized Variance</th>
             <th>Daily Standard Deviation</th>
             <th>Annualized Standard Deviation</th>
+            <th>Sharpe Ratio</th>
+            <th>Beta</th>
         </tr>
         <tr>
             @{
@@ -260,6 +262,8 @@
                     <td>N/A</td>
                     <td>@String.Format("{0:C}", Model.DailyStandardDeviation)</td>
                     <td>N/A</td>
+                <td>@String.Format("{0:N}", Model.SharpeRatio)</td>
+                <td>@String.Format("{0:N}", Model.Beta)</td>
             }
                 else
                 {
@@ -269,6 +273,8 @@
                     <td>@String.Format("{0:N}", Model.AnnualizedVariance)</td>
                     <td>@String.Format("{0:C}", Model.DailyStandardDeviation)</td>
                     <td>@String.Format("{0:C}", Model.AnnualizedStandardDeviation)</td>
+                <td>@String.Format("{0:N}", Model.SharpeRatio)</td>
+                <td>@String.Format("{0:N}", Model.Beta)</td>
             }
             }
         </tr>
