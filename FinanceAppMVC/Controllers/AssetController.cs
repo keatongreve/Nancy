@@ -113,6 +113,7 @@ namespace FinanceAppMVC.Controllers
             double variance = aggregateVariance / (treasuryRate.Count - 1);
 
             asset.Beta = covariance / variance;
+            asset.HistoricalCorrelation = covariance / (Math.Sqrt(variance) * asset.DailyStandardDeviation);
 
             ViewBag.Date = startDate;
 

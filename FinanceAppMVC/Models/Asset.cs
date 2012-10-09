@@ -20,6 +20,7 @@ namespace FinanceAppMVC.Models
         public double AnnualizedStandardDeviation { get; set; }
         public double SharpeRatio { get; set; }
         public double Beta { get; set; }
+        public double HistoricalCorrelation { get; set; }
         public List<AssetPrice> Prices { get; set; }
     }
 }
