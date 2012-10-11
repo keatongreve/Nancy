@@ -71,48 +71,77 @@ namespace FinanceAppMVC.Controllers
 
             asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
             asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
+            
 
-            List<AssetPrice> StandardAndPoor = getQuotes("^GSPC").Where(p => p.Date >= startDate).ToList();
-            double sumDiffReturn = 0;
-            for (int i = 0; i < queriedPrices.Count; i++)
+            List<AssetPrice> treasuryRates = getQuotes("^IRX").Where(p => p.Date >= startDate).ToList();
+            double meanTreasuryRate = treasuryRates.Sum(p => p.ClosePrice) / (treasuryRates.Count);
+            double covariance = 0;
+            
+            double sumDiffReturnIRX = 0;
+            foreach (var p in queriedPrices)
             {
-                sumDiffReturn += queriedPrices[i].SimpleRateOfReturn - StandardAndPoor[i].SimpleRateOfReturn;
+                var irxRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (irxRate != null)
+                    sumDiffReturnIRX += p.SimpleRateOfReturn - irxRate.ClosePrice;
             }
+            double expectedValueRateIRX = sumDiffReturnIRX / queriedPrices.Count;
 
-            sumDiffReturn = sumDiffReturn / queriedPrices.Count;
+            List<AssetPrice> StandardAndPoor = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
+            double sumDiffReturnMF = 0;
+            foreach (var p in treasuryRates)
+            {
+                var spPrice = StandardAndPoor.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (spPrice != null)
+                    sumDiffReturnMF += spPrice.SimpleRateOfReturn - p.ClosePrice;
+            }
+            double expectedValueRateMF = sumDiffReturnMF / queriedPrices.Count;
 
             double sumVariance = 0;
-
-            for (int i = 0; i < queriedPrices.Count; i++)
+            foreach (var p in queriedPrices)
             {
-                sumVariance += Math.Pow((queriedPrices[i].SimpleRateOfReturn - StandardAndPoor[i].SimpleRateOfReturn) - sumDiffReturn, 2);
+                var spPrice = StandardAndPoor.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (spPrice != null)
+                    sumVariance += Math.Pow((p.SimpleRateOfReturn - spPrice.SimpleRateOfReturn) - expectedValueRateMF, 2);
             }
 
-            double stdDevReturn = Math.Sqrt(sumVariance / (queriedPrices.Count - 1));
-
-            asset.SharpeRatio = sumDiffReturn / stdDevReturn;
-
-            List<AssetPrice> treasuryRates = getQuotes("^TNX", true).Where(p => p.Date >= startDate).ToList();
-            double meanTreasuryRate = treasuryRates.Sum(p => p.ClosePrice) / (treasuryRates.Count - 1);
-            double covariance = 0;
+            double aggregrateMFDiffVariance = 0;
             foreach (var p in queriedPrices)
             {
                 var treasuryRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
-                if (treasuryRate != null)
-                    covariance += (p.SimpleRateOfReturn - asset.DailyMeanRate) * (treasuryRate.ClosePrice - meanTreasuryRate);
+                var spPrice = StandardAndPoor.Where(y => y.Date == p.Date).FirstOrDefault();
+                if (treasuryRate != null && spPrice != null)
+                {
+                    covariance += ((p.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateIRX) * (spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF));
+                    aggregrateMFDiffVariance += Math.Pow(spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF, 2);
+                }
             }
 
-            covariance = covariance / (queriedPrices.Count - 1);
+            covariance = covariance / (queriedPrices.Count);
             aggregateVariance = 0;
-            foreach (AssetPrice p in treasuryRates)
+            foreach (var p in treasuryRates)
             {
-                aggregateVariance += Math.Pow(p.ClosePrice - asset.DailyMeanRate, 2);
+                var treasuryRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                var spPrice = StandardAndPoor.Where(y => y.Date == p.Date).FirstOrDefault();
+                if (treasuryRate != null && spPrice != null)
+                    aggregateVariance += Math.Pow((spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF), 2);
+            }
+            double variance = aggregateVariance / (treasuryRates.Count);
+
+            double sharpeDiffReturn = 0;
+            double aggregateRateDiffVariance = 0;
+            foreach (var p in queriedPrices)
+            {
+                var irxRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (irxRate != null)
+                {
+                    sharpeDiffReturn += p.SimpleRateOfReturn - irxRate.ClosePrice;
+                    aggregateRateDiffVariance += Math.Pow((p.SimpleRateOfReturn - irxRate.ClosePrice) - expectedValueRateIRX, 2);
+                }
             }
 
-            double variance = aggregateVariance / (treasuryRates.Count - 1);
-
+            asset.SharpeRatio = sharpeDiffReturn * Math.Sqrt(queriedPrices.Count / aggregateRateDiffVariance);
             asset.Beta = covariance / variance;
-            asset.HistoricalCorrelation = covariance / (Math.Sqrt(variance) * asset.DailyStandardDeviation);
+            asset.HistoricalCorrelation = covariance / (Math.Sqrt(aggregateRateDiffVariance / (queriedPrices.Count)) * Math.Sqrt(aggregrateMFDiffVariance / (queriedPrices.Count)));
 
             ViewBag.Date = startDate;
 
@@ -180,7 +209,7 @@ namespace FinanceAppMVC.Controllers
             base.Dispose(disposing);
         }
 
-        private List<AssetPrice> getQuotes(String ticker, bool isTreasuryRate = false)
+        private List<AssetPrice> getQuotes(String ticker)
         {
             DateTime endDate = DateTime.Today;
             String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + 
@@ -205,14 +234,14 @@ namespace FinanceAppMVC.Controllers
                     double openPrice = Double.Parse(quotes[i + 1]);
                     double closePrice = Double.Parse(quotes[i + 6]);
                     double simpleRateofReturn, logRateOfReturn;
-                    if (isTreasuryRate)
+                    if (ticker == "^IRX")
                     {
                         assetPrices.Add(new AssetPrice
                         {
                             Date = date,
                             OpenPrice = openPrice / (100 * 365),
                             ClosePrice = closePrice / (100 * 365),
-                            SimpleRateOfReturn = 0,
+                            SimpleRateOfReturn = closePrice / (100 * 365),
                             LogRateOfReturn = 0
                         });
                     }
