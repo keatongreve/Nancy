@@ -52,17 +52,19 @@ namespace FinanceAppMVC.Controllers
 
             /* Temporarily replace the asset's prices (all prices) with a list of prices starting 
              * from the requested date. This does not affect anything in the database. */            
-            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();            
+            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+            queriedPrices.RemoveAt(0);
             asset.Prices = queriedPrices;
+            
 
-            asset.DailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
+            asset.DailyMeanRate = asset.Prices.Sum(p => p.LogRateOfReturn) / (asset.Prices.Count - 1);
             asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
 
             double aggregateVariance = 0;
             double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count - 1);
             foreach (AssetPrice p in queriedPrices)
             {
-                aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.DailyMeanRate, 2);
+                aggregateVariance += Math.Pow(p.LogRateOfReturn - asset.DailyMeanRate, 2);
             }
 
             asset.DailyVariance = aggregateVariance / (asset.Prices.Count - 1);
@@ -70,9 +72,10 @@ namespace FinanceAppMVC.Controllers
 
             asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
             asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
-            
+
 
             List<AssetPrice> treasuryRates = getQuotes("^IRX").Where(p => p.Date >= startDate).ToList();
+            treasuryRates.RemoveAt(0);
             double meanTreasuryRate = treasuryRates.Sum(p => p.ClosePrice) / (treasuryRates.Count);
             double covariance = 0;
             
@@ -81,7 +84,7 @@ namespace FinanceAppMVC.Controllers
             {
                 var irxRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
                 if (irxRate != null)
-                    sumDiffReturnIRX += p.SimpleRateOfReturn - irxRate.ClosePrice;
+                    sumDiffReturnIRX += p.LogRateOfReturn - irxRate.ClosePrice;
             }
             double expectedValueRateIRX = sumDiffReturnIRX / queriedPrices.Count;
 
@@ -91,7 +94,7 @@ namespace FinanceAppMVC.Controllers
             {
                 var spPrice = StandardAndPoor.Where(x => x.Date == p.Date).FirstOrDefault();
                 if (spPrice != null)
-                    sumDiffReturnMF += spPrice.SimpleRateOfReturn - p.ClosePrice;
+                    sumDiffReturnMF += spPrice.LogRateOfReturn - p.ClosePrice;
             }
             double expectedValueRateMF = sumDiffReturnMF / queriedPrices.Count;
 
@@ -100,7 +103,7 @@ namespace FinanceAppMVC.Controllers
             {
                 var spPrice = StandardAndPoor.Where(x => x.Date == p.Date).FirstOrDefault();
                 if (spPrice != null)
-                    sumVariance += Math.Pow((p.SimpleRateOfReturn - spPrice.SimpleRateOfReturn) - expectedValueRateMF, 2);
+                    sumVariance += Math.Pow((p.LogRateOfReturn - spPrice.LogRateOfReturn) - expectedValueRateMF, 2);
             }
 
             double aggregrateMFDiffVariance = 0;
@@ -110,8 +113,8 @@ namespace FinanceAppMVC.Controllers
                 var spPrice = StandardAndPoor.Where(y => y.Date == p.Date).FirstOrDefault();
                 if (treasuryRate != null && spPrice != null)
                 {
-                    covariance += ((p.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateIRX) * (spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF));
-                    aggregrateMFDiffVariance += Math.Pow(spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF, 2);
+                    covariance += ((p.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateIRX) * (spPrice.LogRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF));
+                    aggregrateMFDiffVariance += Math.Pow(spPrice.LogRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF, 2);
                 }
             }
 
@@ -122,7 +125,7 @@ namespace FinanceAppMVC.Controllers
                 var treasuryRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
                 var spPrice = StandardAndPoor.Where(y => y.Date == p.Date).FirstOrDefault();
                 if (treasuryRate != null && spPrice != null)
-                    aggregateVariance += Math.Pow((spPrice.SimpleRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF), 2);
+                    aggregateVariance += Math.Pow((spPrice.LogRateOfReturn - treasuryRate.ClosePrice - expectedValueRateMF), 2);
             }
             double variance = aggregateVariance / (treasuryRates.Count);
 
@@ -133,8 +136,8 @@ namespace FinanceAppMVC.Controllers
                 var irxRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
                 if (irxRate != null)
                 {
-                    sharpeDiffReturn += (p.SimpleRateOfReturn - irxRate.ClosePrice);
-                    aggregateRateDiffVariance += Math.Pow((p.SimpleRateOfReturn - irxRate.ClosePrice) - expectedValueRateIRX, 2);
+                    sharpeDiffReturn += (p.LogRateOfReturn - irxRate.ClosePrice);
+                    aggregateRateDiffVariance += Math.Pow((p.LogRateOfReturn - irxRate.ClosePrice) - expectedValueRateIRX, 2);
                 }
             }
 
@@ -241,7 +244,7 @@ namespace FinanceAppMVC.Controllers
                             OpenPrice = openPrice / (100 * 365),
                             ClosePrice = closePrice / (100 * 365),
                             SimpleRateOfReturn = closePrice / (100 * 365),
-                            LogRateOfReturn = 0
+                            LogRateOfReturn = closePrice / (100 * 365)
                         });
                     }
                     else
