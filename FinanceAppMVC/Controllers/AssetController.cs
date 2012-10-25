@@ -154,6 +154,7 @@ namespace FinanceAppMVC.Controllers
         {
             List<Asset> assets = db.Assets.Include(a => a.Prices).ToList();
             DateTime startDate;
+            double[,] covarianceMatrix = new double[assets.Count, assets.Count];
 
             if (date == "")
                 startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
@@ -192,7 +193,67 @@ namespace FinanceAppMVC.Controllers
             ViewBag.Date = startDate;
             ViewBag.TotalInverseVolatility = totalInverseVolatility;
 
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                for (int j = i; j < assets.Count; j++)
+                {
+                    covarianceMatrix[i,j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate).ToList(),
+                        assets[j].Prices.Where(p => p.Date >= startDate).ToList());
+                }
+            }
+
+            ViewBag.CovarianceMatrix = covarianceMatrix;
+
+
             return View("RiskAnalysis", assets);
+        }
+
+        private double calculateCovariance(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
+        {
+            double covariance = 0;
+
+            double expectedValue_queriedPrices1 = calculateExpectedValue(queriedPrices1);
+            double expectedValue_queriedPrices2 = calculateExpectedValue(queriedPrices2);
+
+            foreach (var p in queriedPrices1)
+            {
+                var rate = queriedPrices2.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (rate != null)
+                {
+                    covariance += ((p.SimpleRateOfReturn - expectedValue_queriedPrices1) * (rate.SimpleRateOfReturn - expectedValue_queriedPrices2));
+                }
+            }
+
+            covariance = covariance / (queriedPrices1.Count);
+
+            return covariance;
+        }
+
+        private double calculateExpectedValue(List<AssetPrice> assetPrices)
+        {
+            double expectedValue = 0;
+            foreach (var p in assetPrices)
+            {
+                expectedValue += p.SimpleRateOfReturn;
+            }
+            expectedValue = expectedValue / assetPrices.Count;
+            return expectedValue;
+        }
+
+        private double calculateStandardDev(List<AssetPrice> assetPrices)
+        {
+            double standardDev = 0;
+            double expectedValue = calculateExpectedValue(assetPrices);
+
+            foreach (var p in assetPrices)
+            {
+                standardDev += Math.Pow(p.SimpleRateOfReturn - expectedValue, 2);
+            }
+
+            standardDev = Math.Sqrt(standardDev / assetPrices.Count);
+
+            return standardDev;
         }
 
         // POST: /Asset/Delete/5
