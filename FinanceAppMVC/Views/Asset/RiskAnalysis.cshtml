@@ -64,7 +64,7 @@
         </td>
     </tr>
 </table>
-
+<br />
 <table width="100%">
 @{
     <tr>
@@ -85,7 +85,35 @@
         for (int j = 0; j < modelList.Count; j++)
         {
             <td>
-                @(String.Format("{0}", i >= j ? String.Format("[{0}, {1}]", modelList[i].Symbol, modelList[j].Symbol) : ""))
+                @(String.Format("{0:N5}", i >= j ? ViewBag.CovarianceMatrix[i,j] : ""))
+            </td>
+        }
+        }
+        </tr>
+    }
+}
+</table>
+<br />
+<table width="100%">
+@{
+    <tr>
+        <th></th>
+    @{
+    for (int i = 0; i < modelList.Count; i++)
+    {
+        <th>@(modelList[i].Symbol)</th>
+    }
+    }
+    </tr>
+    for (int i = 0; i < modelList.Count; i++)
+    {
+        <tr>
+            <td>@(modelList[i].Symbol)</td>
+        @{
+        for (int j = 0; j < modelList.Count; j++)
+        {
+            <td>
+                @(String.Format("{0:N5}", i >= j ? ViewBag.CorrelationMatrix[i,j] : ""))
             </td>
         }
         }

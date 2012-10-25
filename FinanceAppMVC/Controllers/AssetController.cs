@@ -155,6 +155,7 @@ namespace FinanceAppMVC.Controllers
             List<Asset> assets = db.Assets.Include(a => a.Prices).ToList();
             DateTime startDate;
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
+            double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
             if (date == "")
                 startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
@@ -196,14 +197,25 @@ namespace FinanceAppMVC.Controllers
 
             for (int i = 0; i < assets.Count; i++)
             {
-                for (int j = i; j < assets.Count; j++)
+                for (int j = 0; j < assets.Count; j++)
                 {
-                    covarianceMatrix[i,j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate).ToList(),
-                        assets[j].Prices.Where(p => p.Date >= startDate).ToList());
+                    covarianceMatrix[i,j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
+                        assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
                 }
             }
 
             ViewBag.CovarianceMatrix = covarianceMatrix;
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                for (int j = 0; j < assets.Count; j++)
+                {
+                    correlationMatrix[i, j] = calculateCorrelation(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
+                        assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                }
+            }
+
+            ViewBag.CorrelationMatrix = correlationMatrix;
 
 
             return View("RiskAnalysis", assets);
@@ -254,6 +266,15 @@ namespace FinanceAppMVC.Controllers
             standardDev = Math.Sqrt(standardDev / assetPrices.Count);
 
             return standardDev;
+        }
+
+        private double calculateCorrelation(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
+        {
+            double correlation = 0;
+
+            correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1) * calculateStandardDev(queriedPrices2));
+
+            return correlation;
         }
 
         // POST: /Asset/Delete/5
