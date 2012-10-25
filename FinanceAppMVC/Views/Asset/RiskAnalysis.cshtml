@@ -64,3 +64,32 @@
         </td>
     </tr>
 </table>
+
+<table width="100%">
+@{
+    <tr>
+        <th></th>
+    @{
+    var modelList = Model.ToList<FinanceAppMVC.Models.Asset>();
+    for (int i = 0; i < modelList.Count; i++)
+    {
+        <th>@(modelList[i].Symbol)</th>
+    }
+    }
+    </tr>
+    for (int i = 0; i < modelList.Count; i++)
+    {
+        <tr>
+            <td>@(modelList[i].Symbol)</td>
+        @{
+        for (int j = 0; j < modelList.Count; j++)
+        {
+            <td>
+                @(String.Format("{0}", i >= j ? String.Format("[{0}, {1}]", modelList[i].Symbol, modelList[j].Symbol) : ""))
+            </td>
+        }
+        }
+        </tr>
+    }
+}
+</table>
