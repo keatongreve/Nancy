@@ -6,42 +6,85 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FinanceAppMVC.Models;
-using System.Web.Security;
 using System.Net;
-using System.Diagnostics;
 
 namespace FinanceAppMVC.Controllers
 {
-    public class AssetController : Controller
+    public class PortfolioController : Controller
     {
         private DataContext db = new DataContext();
 
-        public ActionResult AssetList()
+        // GET: /Portfolio/
+        public ActionResult Index()
         {
-            return PartialView("AssetList", db.Assets.ToList());
+            return View(db.Portfolios.ToList());
         }
 
+        // GET: /Portfolio/Details/5
+        public ActionResult Details(int id = 0)
+        {
+            Portfolio portfolio = db.Portfolios.Find(id);
+            if (portfolio == null)
+            {
+                return RedirectToAction("Index");
+            }
+            return View(portfolio);
+        }
+
+        // GET: /Portfolio/Create
         public ActionResult Create()
         {
-            return PartialView("Create");
+            return View();
         }
 
-        // POST: /Asset/Create
+        // POST: /Portfolio/Create
         [HttpPost]
-        public ActionResult Create(Asset asset)
+        public ActionResult Create(Portfolio portfolio)
         {
             if (ModelState.IsValid)
             {
+                portfolio.DateCreated = DateTime.Now;
+                portfolio.Assets = new List<Asset>();
+                db.Portfolios.Add(portfolio);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+
+            return View(portfolio);
+        }
+
+        public ActionResult AddAsset(int portfolioID)
+        {
+            return PartialView("AddAsset", new Asset { PortfolioID = portfolioID });
+        }
+
+        [HttpPost]
+        public ActionResult AddAsset(Asset asset)
+        {
+            Portfolio portfolio = db.Portfolios.Find(asset.PortfolioID);
+            if (ModelState.IsValid && portfolio != null)
+            {
                 asset.Prices = getQuotes(asset.Symbol);
+                asset.Portfolio = portfolio;
                 db.Assets.Add(asset);
                 db.SaveChanges();
             }
-            return AssetList();
+            return AssetList(asset.PortfolioID);
         }
 
-        // GET: /Asset/Details/5?date=...
-        public ActionResult Details(int id, String date = "")
+        public ActionResult AssetList(int id = 0)
         {
+            Portfolio portfolio = db.Portfolios.Include(p => p.Assets).Where(p => p.ID == id).FirstOrDefault();
+            if (portfolio == null)
+            {
+                return RedirectToAction("Index");
+            }
+            return PartialView("AssetList", portfolio.Assets.ToList());
+        }
+
+        public ActionResult Asset(int id, String date = "")
+        {
+
             Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
 
@@ -51,11 +94,11 @@ namespace FinanceAppMVC.Controllers
                 startDate = DateTime.Parse(date);
 
             /* Temporarily replace the asset's prices (all prices) with a list of prices starting 
-             * from the requested date. This does not affect anything in the database. */            
+             * from the requested date. This does not affect anything in the database. */
             List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
             queriedPrices.RemoveAt(0);
             asset.Prices = queriedPrices;
-            
+
 
             asset.DailyMeanRate = asset.Prices.Sum(p => p.LogRateOfReturn) / (asset.Prices.Count - 1);
             asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
@@ -78,7 +121,7 @@ namespace FinanceAppMVC.Controllers
             treasuryRates.RemoveAt(0);
             double meanTreasuryRate = treasuryRates.Sum(p => p.ClosePrice) / (treasuryRates.Count);
             double covariance = 0;
-            
+
             double sumDiffReturnIRX = 0;
             foreach (var p in queriedPrices)
             {
@@ -147,12 +190,27 @@ namespace FinanceAppMVC.Controllers
 
             ViewBag.Date = startDate;
 
-            return View("Details", asset);
+            return View("AssetDetails", asset);
         }
 
-        public ActionResult RiskAnalysis(String date = "")
+        [HttpPost]
+        public ActionResult DeleteAsset(int id = 0)
         {
-            List<Asset> assets = db.Assets.Include(a => a.Prices).ToList();
+            int portfolioID = 0;
+            Asset asset = db.Assets.Find(id);
+            if (asset != null)
+            {
+                portfolioID = asset.PortfolioID;
+                db.Assets.Remove(asset);
+                db.SaveChanges();
+            }
+            return AssetList(portfolioID);
+        }
+
+        public ActionResult RiskAnalysis(int id = 0, String date = "")
+        {
+
+            List<Asset> assets = db.Assets.Include(a => a.Prices).Where(a => a.PortfolioID == id).ToList();
             DateTime startDate;
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
@@ -199,7 +257,7 @@ namespace FinanceAppMVC.Controllers
             {
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    covarianceMatrix[i,j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
+                    covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
                         assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
                 }
             }
@@ -219,6 +277,22 @@ namespace FinanceAppMVC.Controllers
 
 
             return View("RiskAnalysis", assets);
+        }
+
+        // POST: /Portfolio/Delete/5
+        [HttpPost, ActionName("Delete")]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            Portfolio portfolio = db.Portfolios.Find(id);
+            db.Portfolios.Remove(portfolio);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            db.Dispose();
+            base.Dispose(disposing);
         }
 
         private double calculateCovariance(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
@@ -275,22 +349,6 @@ namespace FinanceAppMVC.Controllers
             correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1) * calculateStandardDev(queriedPrices2));
 
             return correlation;
-        }
-
-        // POST: /Asset/Delete/5
-        [HttpPost]
-        public ActionResult Delete(int id)
-        {
-            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
-            db.Assets.Remove(asset);
-            db.SaveChanges();
-            return AssetList();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            db.Dispose();
-            base.Dispose(disposing);
         }
 
         private List<AssetPrice> getQuotes(String ticker)

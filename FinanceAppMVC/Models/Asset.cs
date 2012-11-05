@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -10,6 +11,8 @@ namespace FinanceAppMVC.Models
     {
         [Key]
         public int ID { get; set; }
+        public int PortfolioID { get; set; }
+        public Portfolio Portfolio { get; set; }
         [Required]
         public string Symbol { get; set; }
         public double DailyMeanRate { get; set; }
@@ -21,6 +24,6 @@ namespace FinanceAppMVC.Models
         public double SharpeRatio { get; set; }
         public double Beta { get; set; }
         public double HistoricalCorrelation { get; set; }
-        public List<AssetPrice> Prices { get; set; }
+        public ICollection<AssetPrice> Prices { get; set; }
     }
 }

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<FinanceAppMVC.Models.Portfolio>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table>
+    <tr>
+        <th>Portfolio Name</th>
+        <th>Date Created</th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>@item.PortfolioName</td>
+        <td>@(item.DateCreated.ToShortDateString())</td>
+        <td>
+            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ID })
+        </td>
+    </tr>
+}
+
+</table>

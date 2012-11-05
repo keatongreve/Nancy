@@ -1,0 +1,24 @@
+﻿@model FinanceAppMVC.Models.Portfolio
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+@using (Html.BeginForm()) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Portfolio</legend>
+
+        <div class="editor-field">
+            @Html.ValidationMessageFor(model => model.PortfolioName)
+            @Html.LabelFor(model => model.PortfolioName)
+            @Html.EditorFor(model => model.PortfolioName)
+        </div>
+        
+        <input type="submit" value="Create" />
+
+    </fieldset>
+}

@@ -1,0 +1,32 @@
+﻿@model FinanceAppMVC.Models.Asset
+
+@{
+    ViewBag.Title = "Create";
+    var options = new AjaxOptions {
+      Url = Url.Action("AddAsset", "Portfolio"),
+      UpdateTargetId = "AssetList",
+      HttpMethod = "POST",
+      LoadingElementId = "loader",
+      OnSuccess="$('#Symbol').val('')"
+    };
+}
+
+<h3>Add Assets to Portfolio</h3>
+
+@using (Ajax.BeginForm(options)) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Asset</legend>
+
+        <div class="editor-field">
+            @Html.ValidationMessageFor(model => model.Symbol)
+            @Html.EditorFor(model => model.Symbol, new { id = "Symbol" })
+        </div>
+
+        @Html.HiddenFor(model => model.PortfolioID)
+
+        <input id="add_asset" type="submit" value="Add Asset" />
+
+    </fieldset>
+}
