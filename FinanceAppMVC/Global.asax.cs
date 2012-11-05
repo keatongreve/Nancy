@@ -26,7 +26,7 @@ namespace FinanceAppMVC
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             AuthConfig.RegisterAuth();
 
-            Database.SetInitializer(new DropCreateDatabaseAlways<DataContext>());
+            Database.SetInitializer(new DropCreateDatabaseIfModelChanges<DataContext>());
         }
     }
 }

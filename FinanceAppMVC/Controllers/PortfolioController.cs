@@ -17,7 +17,12 @@ namespace FinanceAppMVC.Controllers
         // GET: /Portfolio/
         public ActionResult Index()
         {
-            return View(db.Portfolios.ToList());
+            return View();
+        }
+
+        public ActionResult List()
+        {
+            return PartialView(db.Portfolios.ToList());
         }
 
         // GET: /Portfolio/Details/5
@@ -79,7 +84,7 @@ namespace FinanceAppMVC.Controllers
             {
                 return RedirectToAction("Index");
             }
-            return PartialView("AssetList", portfolio.Assets.ToList());
+            return PartialView("AssetList", portfolio.Assets.OrderBy(a => a.ID).ToList());
         }
 
         public ActionResult Asset(int id, String date = "")
@@ -280,13 +285,13 @@ namespace FinanceAppMVC.Controllers
         }
 
         // POST: /Portfolio/Delete/5
-        [HttpPost, ActionName("Delete")]
-        public ActionResult DeleteConfirmed(int id)
+        [HttpPost]
+        public ActionResult Delete(int id)
         {
             Portfolio portfolio = db.Portfolios.Find(id);
             db.Portfolios.Remove(portfolio);
             db.SaveChanges();
-            return RedirectToAction("Index");
+            return List();
         }
 
         protected override void Dispose(bool disposing)

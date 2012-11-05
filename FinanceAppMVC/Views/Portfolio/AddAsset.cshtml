@@ -1,7 +1,6 @@
 ﻿@model FinanceAppMVC.Models.Asset
 
 @{
-    ViewBag.Title = "Create";
     var options = new AjaxOptions {
       Url = Url.Action("AddAsset", "Portfolio"),
       UpdateTargetId = "AssetList",
@@ -19,9 +18,9 @@
     <fieldset>
         <legend>Asset</legend>
 
-        <div class="editor-field">
-            @Html.ValidationMessageFor(model => model.Symbol)
+        <div class="editor-field">            
             @Html.EditorFor(model => model.Symbol, new { id = "Symbol" })
+            @Html.ValidationMessageFor(model => model.Symbol)
         </div>
 
         @Html.HiddenFor(model => model.PortfolioID)
