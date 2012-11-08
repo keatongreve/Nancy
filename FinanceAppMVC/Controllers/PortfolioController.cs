@@ -358,22 +358,45 @@ namespace FinanceAppMVC.Controllers
             return correlation;
         }
 
-        public ActionResult PortfolioStatistics(String weightList, int portfolioID = 0)
+        public ActionResult PortfolioStatistics(String weightList = "", int portfolioID = 0, String date = "")
         {
-            JArray weightsJSon = (JArray)JsonConvert.DeserializeObject(weightList);
-            Portfolio portfolio = db.Portfolios.Include(p => p.Assets).Where(p => p.ID == portfolioID).FirstOrDefault();
-            for (int i = 0; i < weightsJSon.Count; i++)
-            {
-                JToken token = weightsJSon[i];
-                string symbol = token["symbol"].ToString();
-                double weight = Double.Parse(token["weight"].ToString());
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == portfolioID).FirstOrDefault();
 
-                Asset asset = portfolio.Assets.Where(a => a.Symbol == symbol).First();
-                asset.Weight = weight;
-                db.SaveChanges();
+            if (!weightList.Equals(""))
+            {
+                JArray weightsJSon = (JArray)JsonConvert.DeserializeObject(weightList);
+                for (int i = 0; i < weightsJSon.Count; i++)
+                {
+                    JToken token = weightsJSon[i];
+                    string symbol = token["symbol"].ToString();
+                    double weight = Double.Parse(token["weight"].ToString());
+
+                    Asset asset = portfolio.Assets.Where(a => a.Symbol == symbol).First();
+                    asset.Weight = weight;
+                    db.SaveChanges();
+                }
             }
-            return View("PortfolioStatistics", null);
+
+            DateTime startDate;
+            if (date == "")
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
+            else
+                startDate = DateTime.Parse(date);
+
+            List<Asset> assets = portfolio.Assets.ToList();
+            double val = 0;
+
+            foreach (Asset a in assets)
+            {
+                val += calculateExpectedValue(a.Prices.Where(price => price.Date >= startDate).ToList());
+            }
+
+            portfolio.meanRateOfReturn = val / portfolio.Assets.Count;
+            ViewBag.Date = startDate;
+
+            return View("PortfolioStatistics", portfolio);
         }
+
 
         private List<AssetPrice> getQuotes(String ticker)
         {

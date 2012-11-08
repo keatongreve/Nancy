@@ -15,5 +15,10 @@ namespace FinanceAppMVC.Models
         public string PortfolioName { get; set; }
         [Display(Name="Date Created")]
         public DateTime DateCreated { get; set; }
+        public double meanRateOfReturn { get; set; }
+        public double standardDeviation { get; set; }
+        public double marketCorrelation { get; set; }
+        public double beta { get; set; }
+        public double sharpeRatio { get; set; }
     }
 }
