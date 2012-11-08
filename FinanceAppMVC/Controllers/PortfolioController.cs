@@ -356,6 +356,29 @@ namespace FinanceAppMVC.Controllers
             return correlation;
         }
 
+        public ActionResult PortfolioStatistics()
+        {
+
+
+            return View("PortfolioStatistics", null);
+        }
+
+        // POST: /Asset/Delete/5
+        [HttpPost]
+        public ActionResult Delete(int id)
+        {
+            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
+            db.Assets.Remove(asset);
+            db.SaveChanges();
+            return AssetList();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            db.Dispose();
+            base.Dispose(disposing);
+        }
+
         private List<AssetPrice> getQuotes(String ticker)
         {
             DateTime endDate = DateTime.Today;

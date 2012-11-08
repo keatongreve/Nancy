@@ -7,37 +7,71 @@
         HttpMethod = "POST",
         LoadingElementId = "loader"
     };
+    int i = 0;
 }
 
-<h2>My Assets</h2>
+<script type="text/javascript">
+    $(document).ready(function() 
+    {
+        $("#statsButton").bind("click", function ()
+        {
+            $.post("/Asset/PortfolioStatistics", 
+        });
+    });
+</script>
 
-@if (Model.Count() > 0)
-{
-    <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = Model.First().PortfolioID })</h4>
-}
-
+    @using (Html.BeginForm("PortfolioStatistics", "Asset", FormMethod.Get))
+    {
 <table>
     <tr>
         <th>
             @Html.DisplayNameFor(model => model.Symbol)
         </th>
         <th></th>
+        <th></th>
+        @if (Model.Count() > 0)
+        {
+            <th>Weight</th>
+        }
     </tr>
+    
+        @foreach (var item in Model) 
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Symbol)
+                </td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = item.ID})
+                </td>
+                <td>
+                    @Ajax.ActionLink("Delete", "Delete", "Asset", new { id = item.ID }, ajaxOptions) 
+                </td>
+                <td>
+                    <div class="editor-field">
+                        @Html.EditorFor(model => model.ElementAt(i).Weight)
+                     </div>
+                </td>
+            </tr>
+            i++;
+          }
 
-@foreach (var item in Model) 
-{
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Symbol)
-        </td>
-        <td>
-            @Html.ActionLink("Details", "Asset", new { id = item.ID })
-        </td>
-        <td>
-            @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions) 
-        </td>
-    </tr>
-}
-</table>
+        <tr>
+        @if (Model.Count() > 0)
+        {
+            using (Html.BeginForm("RiskAnalysis", "Asset", FormMethod.Get))
+            {
+                <td colspan="3">
+                    <input type="submit" value="View Risk Analysis" />
+                </td>
+            }
+            
+            <td>
+                <input type="submit" name="statsButton" value="View Portfolio Statistics" />
+            </td>
+        }
+        </tr>
 
-<div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>
+    </table>
+    
+    }
