@@ -1,5 +1,11 @@
 ﻿@model IEnumerable<FinanceAppMVC.Models.Asset>
 @{
+    int portfolioID = 0;
+    if (Model.Count() > 0)
+    {
+        portfolioID = Model.First().PortfolioID;
+    }
+
     var ajaxOptions = new AjaxOptions
     {
         UpdateTargetId = "AssetList",
@@ -13,33 +19,47 @@
 <script type="text/javascript">
     $(document).ready(function() 
     {
+        var weightSum = 0;
+        $("table input:text").each(function () {
+            weightSum += parseFloat($(this).val());
+        });
+        if (Math.abs(1 - weightSum) <= .001) {
+            $("#portfolioStatistics").show();
+        }
+
         $("#stats").bind("click", function ()
         {
             var weights = [];
             var weightSum = 0;
             $("table input:text").each(function () {
-                weights.push(
-                    { symbol: $(this).attr("id"), weight: $(this).val() }
-                    );
+                weights.push({ symbol: $(this).attr("id"), weight: $(this).val() });
                 weightSum += parseFloat($(this).val());
             });
 
-            if (Math.abs(1 - weightSum) >= .001) {
-                alert("Please ensure weights add up to 1");
+            if (Math.abs(1 - weightSum) > .001) {
+                alert("Please ensure weights add up to 1.");
             }
             else {
-                $("#weightList").val(JSON.stringify(weights));
-                $("#weightsForm").submit();
+                $.ajax({
+                    url: '@Url.Action("SetPortfolioAllocation")',
+                    type: 'POST',
+                    data: { portfolioId: @portfolioID, weightList: JSON.stringify(weights) },
+                    success: function(response) {
+                        alert(response.Message);
+                        if (response.StatusCode == 0) {
+                            $("#portfolioStatistics").show("slow");
+                        }
+                    }
+                });
             }
         });
     });
 </script>
 
-<div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>
+<div id="loader" style="display: none">
+    <img src="~/Images/ajax-loader.gif" /></div>
 <h2>My Assets</h2>
 
-    @using (Html.BeginForm("PortfolioStatistics", "Portfolio", FormMethod.Get, new { id = "weightsForm" }))
-    {
 <table>
     <tr>
         <th>
@@ -52,34 +72,12 @@
             <th>Weight</th>
         }
     </tr>
-    
-        @foreach (var item in Model)
-        {
-           <tr>
-               <td>
-                   @Html.DisplayFor(modelItem => item.Symbol)
-               </td>
-               <td>
-                   @Html.ActionLink("Details", "Asset", new { id = item.ID })
-               </td>
-              <td>
-                   @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions) 
-               </td>
-               <td>
-                    <div class="editor-field">
-                        <input type="text" id="@String.Format("{0}", item.Symbol)" style="width:50px;" value="@item.Weight" />
-                     </div>
-                </td>
-           </tr>
-            i++;
-        }
 
+    @foreach (var item in Model)
+    {
         <tr>
-        @if (Model.Count() > 0)
-        {
-            
-            <td colspan="3">
-                <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = Model.First().PortfolioID })</h4>
+            <td>
+                @Html.DisplayFor(modelItem => item.Symbol)
             </td>
             <td>
                 @*<input type="submit" name="statsButton" value="View Portfolio Statistics" />*@
@@ -87,10 +85,36 @@
                 <input type="hidden" value="@Model.First().PortfolioID" name="portfolioID" />
                 <h4><a href="#" id="stats">View Portfolio Statistics</a></h4>
             </td>
-        }
+            <td>
+                @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions)
+            </td>
+            <td>
+                <div class="editor-field">
+                    <input type="text" id="@String.Format("{0}", item.Symbol)" style="width:50px;" value="@item.Weight" />
+                </div>
+            </td>
         </tr>
-
-    </table>
-    
+        i++;
     }
 
+    @if (Model.Count() > 0)
+    {     
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>
+            <button id="stats">Save</button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = portfolioID })</h4>
+        </td>
+        <td id="portfolioStatistics" style="display:none">
+            <h4>@Html.ActionLink("View Portfolio Statistics", "PortfolioStatistics", new { id = portfolioID })</h4>
+        </td>
+    </tr>
+    }
+
+</table>
