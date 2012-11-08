@@ -297,7 +297,6 @@
     <Content Include="Views\Portfolio\Create.cshtml" />
     <Content Include="Views\Portfolio\List.cshtml" />
     <Content Include="Views\Portfolio\PortfolioStatistics.cshtml" />
-    <Content Include="Views\Portfolio\PortfolioOverview.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
