@@ -25,7 +25,6 @@ namespace FinanceAppMVC.Models
         public double Beta { get; set; }
         public double HistoricalCorrelation { get; set; }
         public double Weight { get; set; }
-        public List<AssetPrice> Prices { get; set; }
         public ICollection<AssetPrice> Prices { get; set; }
     }
 }

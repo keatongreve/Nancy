@@ -13,14 +13,32 @@
 <script type="text/javascript">
     $(document).ready(function() 
     {
-        $("#statsButton").bind("click", function ()
+        $("#stats").bind("click", function ()
         {
-            $.post("/Asset/PortfolioStatistics", 
+            var weights = [];
+            var weightSum = 0;
+            $("table input:text").each(function () {
+                weights.push(
+                    { symbol: $(this).attr("id"), weight: $(this).val() }
+                    );
+                weightSum += parseFloat($(this).val());
+            });
+
+            if (Math.abs(1 - weightSum) >= .001) {
+                alert("Please ensure weights add up to 1");
+            }
+            else {
+                $("#weightList").val(JSON.stringify(weights));
+                $("#weightsForm").submit();
+            }
         });
     });
 </script>
 
-    @using (Html.BeginForm("PortfolioStatistics", "Asset", FormMethod.Get))
+<div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>
+<h2>My Assets</h2>
+
+    @using (Html.BeginForm("PortfolioStatistics", "Portfolio", FormMethod.Get, new { id = "weightsForm" }))
     {
 <table>
     <tr>
@@ -35,39 +53,39 @@
         }
     </tr>
     
-        @foreach (var item in Model) 
+        @foreach (var item in Model)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Symbol)
-                </td>
-                <td>
-                    @Html.ActionLink("Details", "Details", new { id = item.ID})
-                </td>
-                <td>
-                    @Ajax.ActionLink("Delete", "Delete", "Asset", new { id = item.ID }, ajaxOptions) 
-                </td>
-                <td>
+           <tr>
+               <td>
+                   @Html.DisplayFor(modelItem => item.Symbol)
+               </td>
+               <td>
+                   @Html.ActionLink("Details", "Asset", new { id = item.ID })
+               </td>
+              <td>
+                   @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions) 
+               </td>
+               <td>
                     <div class="editor-field">
-                        @Html.EditorFor(model => model.ElementAt(i).Weight)
+                        <input type="text" id="@String.Format("{0}", item.Symbol)" style="width:50px;" value="@item.Weight" />
                      </div>
                 </td>
-            </tr>
+           </tr>
             i++;
-          }
+        }
 
         <tr>
         @if (Model.Count() > 0)
         {
-            using (Html.BeginForm("RiskAnalysis", "Asset", FormMethod.Get))
-            {
-                <td colspan="3">
-                    <input type="submit" value="View Risk Analysis" />
-                </td>
-            }
             
+            <td colspan="3">
+                <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = Model.First().PortfolioID })</h4>
+            </td>
             <td>
-                <input type="submit" name="statsButton" value="View Portfolio Statistics" />
+                @*<input type="submit" name="statsButton" value="View Portfolio Statistics" />*@
+                <input type="hidden" id="weightList" name="weightList" />
+                <input type="hidden" value="@Model.First().PortfolioID" name="portfolioID" />
+                <a href="#" id="stats">View Portfolio Statistics</a>
             </td>
         }
         </tr>
@@ -75,3 +93,4 @@
     </table>
     
     }
+

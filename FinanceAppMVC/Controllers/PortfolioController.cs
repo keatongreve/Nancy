@@ -7,6 +7,8 @@ using System.Web;
 using System.Web.Mvc;
 using FinanceAppMVC.Models;
 using System.Net;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace FinanceAppMVC.Controllers
 {
@@ -356,27 +358,21 @@ namespace FinanceAppMVC.Controllers
             return correlation;
         }
 
-        public ActionResult PortfolioStatistics()
+        public ActionResult PortfolioStatistics(String weightList, int portfolioID = 0)
         {
+            JArray weightsJSon = (JArray)JsonConvert.DeserializeObject(weightList);
+            Portfolio portfolio = db.Portfolios.Include(p => p.Assets).Where(p => p.ID == portfolioID).FirstOrDefault();
+            for (int i = 0; i < weightsJSon.Count; i++)
+            {
+                JToken token = weightsJSon[i];
+                string symbol = token["symbol"].ToString();
+                double weight = Double.Parse(token["weight"].ToString());
 
-
+                Asset asset = portfolio.Assets.Where(a => a.Symbol == symbol).First();
+                asset.Weight = weight;
+                db.SaveChanges();
+            }
             return View("PortfolioStatistics", null);
-        }
-
-        // POST: /Asset/Delete/5
-        [HttpPost]
-        public ActionResult Delete(int id)
-        {
-            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
-            db.Assets.Remove(asset);
-            db.SaveChanges();
-            return AssetList();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            db.Dispose();
-            base.Dispose(disposing);
         }
 
         private List<AssetPrice> getQuotes(String ticker)

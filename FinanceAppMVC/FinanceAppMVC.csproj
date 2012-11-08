@@ -296,11 +296,7 @@
     <Content Include="Views\Portfolio\Details.cshtml" />
     <Content Include="Views\Portfolio\Create.cshtml" />
     <Content Include="Views\Portfolio\List.cshtml" />
-    <Content Include="Views\Asset\AssetList.cshtml" />
-    <Content Include="Views\Asset\Create.cshtml" />
-    <Content Include="Views\Asset\Details.cshtml" />
-    <Content Include="Views\Asset\RiskAnalysis.cshtml" />
-    <Content Include="Views\Asset\PortfolioStatistics.cshtml" />
+    <Content Include="Views\Portfolio\PortfolioStatistics.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
