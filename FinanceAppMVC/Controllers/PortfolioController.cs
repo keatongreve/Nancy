@@ -358,11 +358,16 @@ namespace FinanceAppMVC.Controllers
             return correlation;
         }
 
-        public ActionResult PortfolioStatistics(String weightList = "", int portfolioID = 0, String date = "")
+        [HttpPost]
+        public ActionResult SetPortfolioAllocation(int portfolioId, string weightList)
         {
-            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == portfolioID).FirstOrDefault();
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == portfolioId).FirstOrDefault();
 
-            if (!weightList.Equals(""))
+            if (portfolio == null)
+            {
+                return Json(new { Message = "Error: Portfolio with ID " + portfolioId + " not found.", StatusCode = -1 });
+            }
+            else
             {
                 JArray weightsJSon = (JArray)JsonConvert.DeserializeObject(weightList);
                 for (int i = 0; i < weightsJSon.Count; i++)
@@ -373,9 +378,16 @@ namespace FinanceAppMVC.Controllers
 
                     Asset asset = portfolio.Assets.Where(a => a.Symbol == symbol).First();
                     asset.Weight = weight;
-                    db.SaveChanges();
                 }
+                db.SaveChanges();
+
+                return Json(new { Message = "Portfolio asset allocations were saved successfully.", StatusCode = 0 });
             }
+        }
+
+        public ActionResult PortfolioStatistics(int id, String date = "")
+        {
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
 
             DateTime startDate;
             if (date == "")
