@@ -2,11 +2,18 @@
 @{
     var ajaxOptions = new AjaxOptions
     {
-        UpdateTargetId = "asset_list",
+        UpdateTargetId = "AssetList",
         Confirm = "Are you sure you want to delete this asset?",
         HttpMethod = "POST",
         LoadingElementId = "loader"
     };
+}
+
+<h2>My Assets</h2>
+
+@if (Model.Count() > 0)
+{
+    <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = Model.First().PortfolioID })</h4>
 }
 
 <table>
@@ -24,20 +31,13 @@
             @Html.DisplayFor(modelItem => item.Symbol)
         </td>
         <td>
-            @Html.ActionLink("Details", "Details", new { id = item.ID})
+            @Html.ActionLink("Details", "Asset", new { id = item.ID })
         </td>
         <td>
-            @Ajax.ActionLink("Delete", "Delete", "Asset", new { id = item.ID }, ajaxOptions) 
+            @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions) 
         </td>
     </tr>
 }
-
 </table>
 
-@if (Model.Count() > 0)
-{
-    using (Html.BeginForm("RiskAnalysis", "Asset", FormMethod.Get))
-    {
-        <input type="submit" value="View Risk Analysis" />
-    }
-}
+<div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>

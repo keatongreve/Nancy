@@ -1,0 +1,19 @@
+﻿@model FinanceAppMVC.Models.Portfolio
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>@Model.PortfolioName</h2>
+
+<div id="AddAsset">
+    @Html.Action("AddAsset", new { portfolioID = Model.ID })
+</div>
+
+<div id="AssetList">
+    @Html.Action("AssetList", new { id = Model.ID })
+</div>
+
+<p>
+    @Html.ActionLink("Back to List", "Index")
+</p>

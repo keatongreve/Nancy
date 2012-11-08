@@ -1,0 +1,44 @@
+﻿@model IEnumerable<FinanceAppMVC.Models.Portfolio>
+
+@{
+    var options = new AjaxOptions
+    {
+        UpdateTargetId = "PortfolioList",
+        Confirm = "Are you sure you want to delete this portfolio?",
+        HttpMethod = "POST",
+        LoadingElementId = "loader"
+    };
+}
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.PortfolioName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DateCreated)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.PortfolioName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.DateCreated)
+        </td>
+        <td>
+            @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+            @Ajax.ActionLink("Delete", "Delete", new { id=item.ID }, options)
+        </td>
+    </tr>
+}
+
+</table>
+
+<div id="loader" style="display:none"><img src="~/Images/ajax-loader.gif" /></div>

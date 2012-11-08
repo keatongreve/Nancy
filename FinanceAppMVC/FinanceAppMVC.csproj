@@ -164,8 +164,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
-    <Compile Include="Controllers\AssetController.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\PortfolioController.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -174,6 +173,7 @@
     <Compile Include="Models\Asset.cs" />
     <Compile Include="Models\AssetPrice.cs" />
     <Compile Include="Models\DataContext.cs" />
+    <Compile Include="Models\Portfolio.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -284,15 +284,18 @@
     <Content Include="Views\Account\Register.cshtml" />
     <Content Include="Views\Account\ExternalLoginFailure.cshtml" />
     <Content Include="Views\Account\ExternalLoginConfirmation.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
-    <Content Include="Views\Asset\AssetList.cshtml" />
-    <Content Include="Views\Asset\Create.cshtml" />
-    <Content Include="Views\Asset\Details.cshtml" />
-    <Content Include="Views\Asset\RiskAnalysis.cshtml" />
+    <Content Include="Views\Portfolio\AssetList.cshtml" />
+    <Content Include="Views\Portfolio\AddAsset.cshtml" />
+    <Content Include="Views\Portfolio\AssetDetails.cshtml" />
+    <Content Include="Views\Portfolio\RiskAnalysis.cshtml" />
+    <Content Include="Views\Portfolio\Index.cshtml" />
+    <Content Include="Views\Portfolio\Details.cshtml" />
+    <Content Include="Views\Portfolio\Create.cshtml" />
+    <Content Include="Views\Portfolio\List.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -11,7 +11,6 @@ namespace FinanceAppMVC.Models
     {
         [Key]
         public int ID { get; set; }
-        [ForeignKey("Asset")]
         public int AssetID { get; set; }
         public Asset Asset { get; set; }
         public double OpenPrice { get; set; }
