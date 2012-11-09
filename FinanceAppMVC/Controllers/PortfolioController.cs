@@ -227,6 +227,8 @@ namespace FinanceAppMVC.Controllers
             else
                 startDate = DateTime.Parse(date);
 
+            List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
+
             double totalInverseVolatility = 0;
             foreach (Asset asset in assets)
             {
@@ -275,8 +277,9 @@ namespace FinanceAppMVC.Controllers
             {
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    correlationMatrix[i, j] = calculateCorrelation(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
-                        assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                    var prices_i = assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    var prices_j =  assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    correlationMatrix[i, j] = calculateCorrelation(prices_i, prices_j, marketRates);
                 }
             }
 
@@ -368,7 +371,7 @@ namespace FinanceAppMVC.Controllers
             return standardDev;
         }
 
-        private double calculateCorrelation(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
+        private double calculateCorrelation(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2, List<AssetPrice> marketRates)
         {
             double correlation = 0;
 
@@ -566,7 +569,7 @@ namespace FinanceAppMVC.Controllers
                         double ev_j = calculateExpectedValue(prices_j);
                         double std_dev_i = Math.Sqrt(prices_i.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_i), 2)) / prices_i.Count);
                         double std_dev_j = Math.Sqrt(prices_j.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_j), 2)) / prices_j.Count);
-                        val_Variance += assets[i].Weight * assets[j].Weight * std_dev_i * std_dev_j * calculateCorrelation(prices_i, prices_j);
+                        val_Variance += assets[i].Weight * assets[j].Weight * std_dev_i * std_dev_j * calculateCorrelation(prices_i, prices_j, marketRates);
                     }
                 }
             }
