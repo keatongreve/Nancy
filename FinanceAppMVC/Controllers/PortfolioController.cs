@@ -363,6 +363,16 @@ namespace FinanceAppMVC.Controllers
             return correlation;
         }
 
+        private double calculateCorrelationWithMarket(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates, List<AssetPrice> treasuryRates)
+        {
+            double correlation = 0;
+
+            correlation = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates) / (Math.Sqrt(calculateVariance(treasuryRates, queriedPrices)) *
+                Math.Sqrt(calculateVariance(treasuryRates, marketRates)));
+
+            return correlation;
+        }
+
         private double calculateVariance(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates)
         {
             double variance = 0;
@@ -377,7 +387,7 @@ namespace FinanceAppMVC.Controllers
                 }
             }
 
-            variance = variance / queriedPrices.Count;
+            variance = variance / marketRates.Count;
 
             return variance;
         }
@@ -492,23 +502,29 @@ namespace FinanceAppMVC.Controllers
 
                 val_MeanRateOfReturn += calculateExpectedValue(queriedPrices) * a.Weight;
                 val_StandardDeviation += calculateStandardDev(queriedPrices, marketRates) * a.Weight;
-                val_MarketCorrelation += calculateCorrelation(queriedPrices, marketRates) * a.Weight;
+                val_MarketCorrelation += calculateCorrelationWithMarket(queriedPrices, marketRates, treasuryRates) * a.Weight;
+                double val = calculateCorrelationWithMarket(queriedPrices, marketRates, treasuryRates);
                 val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
                 val_Variance = calculateVariance(treasuryRates, marketRates);
                 val_Beta += (val_Covariance / val_Variance) * a.Weight;
+
+                double val_SummedSharpe = 0;
                 foreach (AssetPrice price in a.Prices)
                 {
                     var rate = treasuryRates.Where(x => x.Date == price.Date).FirstOrDefault();
                     if (rate != null)
                     {
-                        val_Sharpe += price.SimpleRateOfReturn - rate.SimpleRateOfReturn;
+                        val_SummedSharpe += price.LogRateOfReturn - rate.ClosePrice;
                     }
                 }
+                val_Variance = calculateVariance(treasuryRates, queriedPrices) * queriedPrices.Count;
+                val_Sharpe += val_SummedSharpe / Math.Sqrt(val_Variance * queriedPrices.Count / 252) * a.Weight;
             }
 
             portfolio.meanRateOfReturn = val_MeanRateOfReturn * 252;
             portfolio.standardDeviation = val_StandardDeviation * 252;
             portfolio.marketCorrelation = val_MarketCorrelation;
+            portfolio.sharpeRatio = val_Sharpe;
             portfolio.beta = val_Beta;
             ViewBag.Date = startDate;
 
