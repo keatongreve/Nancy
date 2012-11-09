@@ -13,75 +13,76 @@
     $(document).ready(function () {
         $("#date").datepicker({ dateFormat: "yy-mm-dd" });
         $("#date").val("@StartDate.ToString("yyyy-MM-dd")");
-        @*chart1 = new Highcharts.Chart({
+        chart1 = new Highcharts.Chart({
             chart: {
-                renderTo: 'quotesContainer',
-                zoomType: 'x',
-                spacingRight: 20
+                renderTo: 'scatterPlotContainer',
+                zoomType: 'xy',
+                type: 'scatter'
             },
             title: {
-                text: '@Model.Symbol Prices'
+                text: '@Model.PortfolioName'
+            },
+            subtitle: {
+                text: 'Click and drag in the plot area to zoom in'
+            },
+            tooltip: {
+                shared: true,
+            },
+            legend: {
+                enabled: false
+            },
+            xAxis: {
+                title: {
+                    text: 'Standard Deviations ($)'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Mean Return Rates (%)'
                 },
-                subtitle: {
-                    text: 'Click and drag in the plot area to zoom in'
-                },
-                tooltip: {
-                    shared: true
-                },
-                legend: {
-                    enabled: false
-                },
-                xAxis: {
-                    maxZoom: 24*3600*1000*5,
-                    type: 'datetime'
-                },
-                yAxis: {
-                    title: {
-                        text: 'Stock Price'
-                    },
-                    startOnTick: false,
-                    showFirstLabel: false
-                },
-                plotOptions: {
-                    area: {
-                        fillColor: {
-                            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
-                            stops: [
-                                [0, Highcharts.getOptions().colors[0]],
-                                [1, 'rgba(2,0,0,0)']
-                            ]
-                        },
-                        lineWidth: 1,
-                        marker: {
-                            enabled: false,
-                            states: {
-                                hover: {
-                                    enabled: true,
-                                    radius: 5
-                                }
-                            }
-                        },
-                        shadow: false,
+                startOnTick: false,
+                showFirstLabel: false
+            },
+            plotOptions: {
+                scatter: {
+                    marker: {
+                        radius: 5,
                         states: {
                             hover: {
-                                lineWidth: 1
+                                enabled: true,
+                                lineColor: 'rgb(100,100,100)'
+                            }
+                        }
+                    },
+                    states: {
+                        hover: {
+                            marker: {
+                                enabled: false
                             }
                         }
                     }
-                },
-                series: [{
-                    type: 'area',
-                    pointStart: Date.UTC(@(StartDate.Year), @(StartDate.Month - 1), @(StartDate.Day)),
-                    pointInterval: 24*3600*1000,
-                    name: '@Model.Symbol',
-                    data: [
-                        @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
-                        {
-                            @String.Format("[Date.UTC({0}, {1}, {2}), {3}],\n", p.Date.Year, p.Date.Month - 1, p.Date.Day, p.ClosePrice)
-                        }
-                    ]
-                }]*@
-            });
+                }
+            },
+            series: [
+
+        @foreach (FinanceAppMVC.Models.Asset asset in Model.Assets)
+            {
+            <text>
+            {
+                name: "@asset.Symbol",
+                color: "#4572A7",
+                data: [
+                    @String.Format("[{0:F4}, {1:F4}], ", asset.AnnualizedStandardDeviation, asset.AnnualizedMeanRate * 100)
+                ],
+                marker: {
+                    symbol: "circle",
+                }
+            },
+            </text>
+            }
+            ]
+        });
+    });
 </script>
 
 <h2>@Model.PortfolioName</h2>
