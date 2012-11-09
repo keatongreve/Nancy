@@ -334,7 +334,23 @@ namespace FinanceAppMVC.Controllers
             return expectedValue;
         }
 
-        private double calculateStandardDev(List<AssetPrice> assetPrices, List<AssetPrice> marketRates)
+        private double calculateStandardDev(List<AssetPrice> assetPrices)
+        {
+            double standardDev = 0;
+            double expectedValue = calculateExpectedValue(assetPrices);
+
+            foreach (var p in assetPrices)
+            {
+                standardDev += Math.Pow(p.SimpleRateOfReturn - expectedValue, 2);
+            }
+            standardDev = Math.Sqrt(standardDev / assetPrices.Count);
+
+            return standardDev;
+
+
+        }
+
+        private double calculateStandardDevWithMarket(List<AssetPrice> assetPrices, List<AssetPrice> marketRates)
         {
             double standardDev = 0;
 
@@ -355,10 +371,12 @@ namespace FinanceAppMVC.Controllers
         private double calculateCorrelation(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
         {
             double correlation = 0;
-            List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= queriedPrices1.ElementAt(1).Date).ToList();
 
-            correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1, marketRates) 
-                * calculateStandardDev(queriedPrices2, marketRates));
+            correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1) 
+                * calculateStandardDev(queriedPrices2));
+            double x = calculateCovariance(queriedPrices1, queriedPrices2);
+            double y = (calculateStandardDev(queriedPrices1)
+                * calculateStandardDev(queriedPrices2));
 
             return correlation;
         }
@@ -501,10 +519,10 @@ namespace FinanceAppMVC.Controllers
                 queriedPrices.RemoveAt(0);
 
                 a.AnnualizedMeanRate = calculateExpectedValue(queriedPrices) * 252;
-                a.AnnualizedStandardDeviation = calculateStandardDev(queriedPrices, marketRates) * 252;
+                a.AnnualizedStandardDeviation = calculateStandardDevWithMarket(queriedPrices, marketRates) * 252;
 
                 val_MeanRateOfReturn += a.AnnualizedMeanRate * a.Weight;
-                val_StandardDeviation += calculateStandardDev(queriedPrices, marketRates) * a.Weight;
+                val_StandardDeviation += calculateStandardDevWithMarket(queriedPrices, marketRates) * a.Weight;
                 val_MarketCorrelation += calculateCorrelationWithMarket(queriedPrices, marketRates, treasuryRates) * a.Weight;
                 val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
                 val_Variance = calculateVariance(treasuryRates, marketRates, queriedPrices.Count + 1);
