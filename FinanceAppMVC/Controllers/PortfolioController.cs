@@ -366,13 +366,14 @@ namespace FinanceAppMVC.Controllers
         private double calculateVariance(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates)
         {
             double variance = 0;
+            double expectedValue_MarketWithTreasury = calculateExpectedValueWithTreasury(marketRates, queriedPrices);
 
-            foreach (var p in queriedPrices)
+            foreach (var p in marketRates)
             {
-                var rate = marketRates.Where(x => x.Date == p.Date).FirstOrDefault();
-                if (rate != null)
+                var treasuryRate = queriedPrices.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (treasuryRate != null)
                 {
-                    variance += Math.Pow(p.SimpleRateOfReturn - rate.SimpleRateOfReturn, 2);
+                    variance += Math.Pow((p.LogRateOfReturn - treasuryRate.ClosePrice) - expectedValue_MarketWithTreasury, 2);
                 }
             }
 
@@ -381,7 +382,59 @@ namespace FinanceAppMVC.Controllers
             return variance;
         }
 
-        public ActionResult PortfolioStatistics(String weightList = "", int portfolioID = 0, String date = "")
+        private double calculateCovarianceWithMarketRates(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates, List<AssetPrice> treasuryRates)
+        {
+            double covariance = 0;
+
+            double expectedValue_AssetWithTreasury = calculateExpectedValueWithTreasury(queriedPrices, treasuryRates);
+            double expectedValue_MarketWithTreasury = calculateExpectedValueWithTreasury(marketRates, treasuryRates);
+
+            foreach (var p in queriedPrices)
+            {
+                var marketRate = marketRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                var treasuryRate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (marketRate != null && treasuryRate != null)
+                {
+                    covariance += ((p.SimpleRateOfReturn - treasuryRate.ClosePrice) - expectedValue_AssetWithTreasury) *
+                        ((marketRate.LogRateOfReturn - treasuryRate.ClosePrice) - expectedValue_MarketWithTreasury);
+                }
+            }
+
+            covariance = covariance / (queriedPrices.Count);
+
+            return covariance;
+        }
+
+        private double calculateExpectedValueWithTreasury(List<AssetPrice> assetPrices, List<AssetPrice> treasuryRates)
+        {
+            double expectedValue = 0;
+            foreach (var p in assetPrices)
+            {
+                var rate = treasuryRates.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (rate != null)
+                {
+                    expectedValue += (p.LogRateOfReturn - rate.ClosePrice);
+                }
+            }
+            expectedValue = expectedValue / assetPrices.Count;
+            return expectedValue;
+        }
+
+        private double calculateExpectedValueWithMarket(List<AssetPrice> assetPrices, List<AssetPrice> marketPrices)
+        {
+            double expectedValue = 0;
+            foreach (var p in assetPrices)
+            {
+                var rate = marketPrices.Where(x => x.Date == p.Date).FirstOrDefault();
+                if (rate != null)
+                {
+                    expectedValue += (p.SimpleRateOfReturn - rate.SimpleRateOfReturn);
+                }
+            }
+            expectedValue = expectedValue / assetPrices.Count;
+            return expectedValue;
+        }
+
         [HttpPost]
         public ActionResult SetPortfolioAllocation(int portfolioId, string weightList)
         {
@@ -426,19 +479,23 @@ namespace FinanceAppMVC.Controllers
             double val_Covariance = 0;
             double val_Variance = 0;
             double val_Sharpe = 0;
-            List<AssetPrice> marketPrices = getQuotes("SPY").ToList().Where(price => price.Date >= startDate).ToList();
-            marketPrices.RemoveAt(0);
+            double val_Beta = 0;
+            List<AssetPrice> marketRates = getQuotes("SPY").ToList().Where(price => price.Date >= startDate).ToList();
+            marketRates.RemoveAt(0);
             List<AssetPrice> treasuryRates = getQuotes("^IRX").ToList().Where(price => price.Date >= startDate).ToList();
             treasuryRates.RemoveAt(0);
 
             foreach (Asset a in assets)
             {
-                val_MeanRateOfReturn += calculateExpectedValue(a.Prices.Where(price => price.Date >= startDate.AddDays(1)).ToList()) * a.Weight;
-                val_StandardDeviation += calculateStandardDev(a.Prices.Where(price => price.Date >= startDate.AddDays(1)).ToList(), marketPrices) * a.Weight;
-                val_MarketCorrelation += calculateCorrelation(a.Prices.Where(price => price.Date >= startDate.AddDays(1)).ToList(),
-                    marketPrices) * a.Weight;
-                val_Covariance += calculateCovariance(a.Prices.Where(price => price.Date >= startDate).ToList(), marketPrices) * a.Weight;
-                val_Variance = calculateVariance(a.Prices.Where(price => price.Date >= startDate.AddDays(1)).ToList(), marketPrices) * a.Weight;
+                List<AssetPrice> queriedPrices = a.Prices.Where(price => price.Date >= startDate).ToList();
+                queriedPrices.RemoveAt(0);
+
+                val_MeanRateOfReturn += calculateExpectedValue(queriedPrices) * a.Weight;
+                val_StandardDeviation += calculateStandardDev(queriedPrices, marketRates) * a.Weight;
+                val_MarketCorrelation += calculateCorrelation(queriedPrices, marketRates) * a.Weight;
+                val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
+                val_Variance = calculateVariance(treasuryRates, marketRates);
+                val_Beta += (val_Covariance / val_Variance) * a.Weight;
                 foreach (AssetPrice price in a.Prices)
                 {
                     var rate = treasuryRates.Where(x => x.Date == price.Date).FirstOrDefault();
@@ -452,7 +509,7 @@ namespace FinanceAppMVC.Controllers
             portfolio.meanRateOfReturn = val_MeanRateOfReturn * 252;
             portfolio.standardDeviation = val_StandardDeviation * 252;
             portfolio.marketCorrelation = val_MarketCorrelation;
-            portfolio.beta = val_Covariance / val_Variance;
+            portfolio.beta = val_Beta;
             ViewBag.Date = startDate;
 
             return View("PortfolioStatistics", portfolio);

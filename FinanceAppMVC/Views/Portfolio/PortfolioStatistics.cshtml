@@ -105,10 +105,10 @@
         </tr>
         <tr>
             <td>@String.Format("{0:P}", Model.meanRateOfReturn)</td>
-            <td>@Model.standardDeviation</td>
-            <td>@Model.marketCorrelation</td>
-            <td>@Model.sharpeRatio</td>
-            <td>@Model.beta</td>
+            <td>@String.Format("{0:C}", Model.standardDeviation)</td>
+            <td>@String.Format("{0:F4}", Model.marketCorrelation)</td>
+            <td>@String.Format("{0:F4}", Model.sharpeRatio)</td>
+            <td>@String.Format("{0:F4}", Model.beta)</td>
         </tr>
     </table>
 }

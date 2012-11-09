@@ -83,7 +83,7 @@
                 @*<input type="submit" name="statsButton" value="View Portfolio Statistics" />*@
                 <input type="hidden" id="weightList" name="weightList" />
                 <input type="hidden" value="@Model.First().PortfolioID" name="portfolioID" />
-                <h4><a href="#" id="stats">View Portfolio Statistics</a></h4>
+                @Html.ActionLink("Details", "Asset", new { id = item.ID })
             </td>
             <td>
                 @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions)
@@ -108,7 +108,7 @@
         </td>
     </tr>
     <tr>
-        <td>
+        <td colspan="3">
             <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = portfolioID })</h4>
         </td>
         <td id="portfolioStatistics" style="display:none">
