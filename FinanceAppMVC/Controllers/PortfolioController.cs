@@ -512,9 +512,32 @@ namespace FinanceAppMVC.Controllers
             portfolio.beta = val_Beta;
             ViewBag.Date = startDate;
 
+            //portfolio return variance
+            val_Variance = 0;
+            foreach (Asset a in assets)
+            {
+                double ev = calculateExpectedValue(a.Prices.ToList());
+                val_Variance += (Math.Pow(a.Weight, 2) * a.Prices.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev), 2)) / a.Prices.Count);
+            }
+            for (int i = 0; i < assets.Count; i++)
+            {
+                for (int j = 0; j < assets.Count; i++)
+                {
+                    if (i != j)
+                    {
+                        var prices_i = assets[i].Prices.ToList();
+                        var prices_j = assets[j].Prices.ToList();
+                        double ev_i = calculateExpectedValue(prices_i);
+                        double ev_j = calculateExpectedValue(prices_j);
+                        double std_dev_i = Math.Sqrt(prices_i.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_i), 2)) / prices_i.Count);
+                        double std_dev_j = Math.Sqrt(prices_j.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_j), 2)) / prices_j.Count);
+                        val_Variance += assets[i].Weight * assets[j].Weight * std_dev_i * std_dev_j * calculateCorrelation(prices_i, prices_j);
+                    }
+                }
+            }
+
             return View("PortfolioStatistics", portfolio);
         }
-
 
         private List<AssetPrice> getQuotes(String ticker)
         {
