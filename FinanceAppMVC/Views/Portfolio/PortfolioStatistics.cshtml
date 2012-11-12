@@ -33,7 +33,7 @@
             },
             xAxis: {
                 title: {
-                    text: 'Standard Deviations ($)'
+                    text: 'Standard Deviations (%)'
                 }
             },
             yAxis: {
@@ -72,7 +72,7 @@
                 name: "@asset.Symbol",
                 color: "#4572A7",
                 data: [
-                    @String.Format("[{0:F4}, {1:F4}], ", asset.AnnualizedStandardDeviation, asset.AnnualizedMeanRate * 100)
+                    @String.Format("[{0:F4}, {1:F4}], ", asset.AnnualizedStandardDeviation * 100, asset.AnnualizedMeanRate * 100)
                 ],
                 marker: {
                     symbol: "circle",
@@ -106,7 +106,7 @@
         </tr>
         <tr>
             <td>@String.Format("{0:P}", Model.meanRateOfReturn)</td>
-            <td>@String.Format("{0:C}", Model.standardDeviation)</td>
+            <td>@String.Format("{0:P}", Model.standardDeviation)</td>
             <td>@String.Format("{0:F4}", Model.marketCorrelation)</td>
             <td>@String.Format("{0:F4}", Model.sharpeRatio)</td>
             <td>@String.Format("{0:F4}", Model.beta)</td>

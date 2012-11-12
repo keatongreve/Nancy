@@ -522,13 +522,14 @@ namespace FinanceAppMVC.Controllers
                 queriedPrices.RemoveAt(0);
 
                 a.AnnualizedMeanRate = calculateExpectedValue(queriedPrices) * 252;
-                a.AnnualizedStandardDeviation = calculateStandardDevWithMarket(queriedPrices, marketRates) * 252;
+                a.AnnualizedStandardDeviation = calculateStandardDev(queriedPrices) * Math.Sqrt(252);
 
                 val_MeanRateOfReturn += a.AnnualizedMeanRate * a.Weight;
-                val_StandardDeviation += calculateStandardDevWithMarket(queriedPrices, marketRates) * a.Weight;
-                val_MarketCorrelation += calculateCorrelationWithMarket(queriedPrices, marketRates, treasuryRates) * a.Weight;
+                val_StandardDeviation += a.AnnualizedStandardDeviation * a.Weight;
+                val_MarketCorrelation += calculateCorrelation(queriedPrices, marketRates, marketRates) * a.Weight;
+                double val = calculateCorrelation(queriedPrices, marketRates, marketRates);
                 val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
-                val_Variance = calculateVariance(treasuryRates, marketRates, queriedPrices.Count + 1);
+                val_Variance = calculateVariance(treasuryRates, marketRates, queriedPrices.Count);
                 val_Beta += (val_Covariance / val_Variance) * a.Weight;
 
                 double val_SummedSharpe = 0;
@@ -545,6 +546,7 @@ namespace FinanceAppMVC.Controllers
             }
 
             portfolio.meanRateOfReturn = val_MeanRateOfReturn;
+            //portfolio.standardDeviation = val_StandardDeviation;
             portfolio.marketCorrelation = val_MarketCorrelation;
             //portfolio.sharpeRatio = val_Sharpe;
             portfolio.beta = val_Beta;
@@ -573,7 +575,7 @@ namespace FinanceAppMVC.Controllers
                     }
                 }
             }
-            portfolio.standardDeviation = Math.Sqrt(val_Variance) * 252;
+            portfolio.standardDeviation = Math.Sqrt(val_Variance * 252);
             portfolio.sharpeRatio = portfolio.meanRateOfReturn / portfolio.standardDeviation;
 
             return View("PortfolioStatistics", portfolio);
