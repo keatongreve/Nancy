@@ -24,7 +24,7 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult List()
         {
-            return PartialView(db.Portfolios.ToList());
+            return PartialView("List", db.Portfolios.ToList());
         }
 
         // GET: /Portfolio/Details/5
