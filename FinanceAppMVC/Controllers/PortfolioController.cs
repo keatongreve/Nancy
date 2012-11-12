@@ -511,6 +511,8 @@ namespace FinanceAppMVC.Controllers
             double val_Variance = 0;
             double val_Sharpe = 0;
             double val_Beta = 0;
+            double[,] covarianceMatrix = new double[assets.Count + 1, assets.Count + 1];
+
             List<AssetPrice> marketRates = getQuotes("SPY").ToList().Where(price => price.Date >= startDate).ToList();
             marketRates.RemoveAt(0);
             List<AssetPrice> treasuryRates = getQuotes("^IRX").ToList().Where(price => price.Date >= startDate).ToList();
@@ -526,10 +528,9 @@ namespace FinanceAppMVC.Controllers
 
                 val_MeanRateOfReturn += a.AnnualizedMeanRate * a.Weight;
                 val_StandardDeviation += a.AnnualizedStandardDeviation * a.Weight;
-                val_MarketCorrelation += calculateCorrelation(queriedPrices, marketRates, marketRates) * a.Weight;
-                double val = calculateCorrelation(queriedPrices, marketRates, marketRates);
-                val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
+                val_MarketCorrelation += calculateCovariance(queriedPrices, marketRates) * a.Weight;
                 val_Variance = calculateVariance(treasuryRates, marketRates, queriedPrices.Count);
+                val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
                 val_Beta += (val_Covariance / val_Variance) * a.Weight;
 
                 double val_SummedSharpe = 0;
@@ -541,41 +542,44 @@ namespace FinanceAppMVC.Controllers
                         val_SummedSharpe += price.LogRateOfReturn - rate.ClosePrice;
                     }
                 }
-                val_Variance = calculateVariance(treasuryRates, queriedPrices, queriedPrices.Count) * queriedPrices.Count;
                 val_Sharpe += val_SummedSharpe / Math.Sqrt(val_Variance * queriedPrices.Count / 252) * a.Weight;
             }
 
             portfolio.meanRateOfReturn = val_MeanRateOfReturn;
-            //portfolio.standardDeviation = val_StandardDeviation;
-            portfolio.marketCorrelation = val_MarketCorrelation;
-            //portfolio.sharpeRatio = val_Sharpe;
             portfolio.beta = val_Beta;
             ViewBag.Date = startDate;
 
             //portfolio return variance
             val_Variance = 0;
-            foreach (Asset a in assets)
-            {
-                double ev = calculateExpectedValue(a.Prices.ToList());
-                val_Variance += (Math.Pow(a.Weight, 2) * a.Prices.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev), 2)) / a.Prices.Count);
-            }
             for (int i = 0; i < assets.Count; i++)
             {
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    if (i != j)
+                    if (i == assets.Count)
                     {
-                        var prices_i = assets[i].Prices.ToList();
-                        var prices_j = assets[j].Prices.ToList();
-                        double ev_i = calculateExpectedValue(prices_i);
-                        double ev_j = calculateExpectedValue(prices_j);
-                        double std_dev_i = Math.Sqrt(prices_i.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_i), 2)) / prices_i.Count);
-                        double std_dev_j = Math.Sqrt(prices_j.Sum(p => Math.Pow((p.SimpleRateOfReturn - ev_j), 2)) / prices_j.Count);
-                        val_Variance += assets[i].Weight * assets[j].Weight * std_dev_i * std_dev_j * calculateCorrelation(prices_i, prices_j, marketRates);
+                        covarianceMatrix[i, j] = calculateCovariance(marketRates,
+                            assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                    }
+                    else if (j == assets.Count)
+                    {
+                        covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
+                            marketRates);
+                    }
+                    else if (i == assets.Count && j == assets.Count)
+                    {
+                        covarianceMatrix[i, j] = calculateCovariance(marketRates, marketRates);
+                    }
+                    else
+                    {
+                        covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
+                            assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                        val_Variance += covarianceMatrix[i, j] * assets[i].Weight * assets[j].Weight;
                     }
                 }
             }
-            portfolio.standardDeviation = Math.Sqrt(val_Variance * 252);
+            double stdDev = Math.Sqrt(val_Variance);
+            portfolio.marketCorrelation = val_MarketCorrelation / (calculateStandardDev(marketRates) * stdDev);
+            portfolio.standardDeviation = stdDev * Math.Sqrt(252);
             portfolio.sharpeRatio = portfolio.meanRateOfReturn / portfolio.standardDeviation;
 
             return View("PortfolioStatistics", portfolio);
