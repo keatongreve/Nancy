@@ -10,6 +10,51 @@
     };
 }
 
+<style>
+.ui-autocomplete-loading {
+    background: white url('@Url.Content("~/Images/ajax-loader-small.gif")') right center no-repeat;
+}
+</style>
+
+<script type="text/javascript">
+
+    var myResp = {};
+    var YAHOO = { Finance: { SymbolSuggest: {} } };
+
+    $(document).ready(function () {
+
+        $("#Symbol").autocomplete({
+            source: function (request, response) {
+                myResp = response;
+                yahooURL = "http://d.yimg.com/autoc.finance.yahoo.com/autoc";
+                $.ajax({
+                    url: yahooURL,
+                    type: "GET",
+                    data: { query: request.term },
+                    dataType: "JSONP",
+                    jsonpCallback: "YAHOO.Finance.SymbolSuggest.ssCallback",
+                    crossDomain: true
+                });
+            },
+            select: function (event, ui) {
+                symbol = ui.item.value;
+                $("#Symbol").val(symbol.substring(0, symbol.indexOf("-") - 1));
+                return false;
+            }
+        });
+
+        YAHOO.Finance.SymbolSuggest.ssCallback = function(response) {
+            data = response.ResultSet.Result;
+            var suggestions = [];
+            $.each(data, function (i, val) {
+                suggestions.push(val.symbol + " - " + val.name);
+            });
+            myResp(suggestions);
+        }
+
+    });
+</script>
+
 <h3>Add Assets to Portfolio</h3>
 
 @using (Ajax.BeginForm(options)) {
