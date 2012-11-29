@@ -9,6 +9,8 @@ using FinanceAppMVC.Models;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using PortfolioQuadraticOptimization.DataContracts;
+using PortfolioQuadraticOptimization;
 
 namespace FinanceAppMVC.Controllers
 {
@@ -258,7 +260,7 @@ namespace FinanceAppMVC.Controllers
             return expectedValue / queriedPrices.Count;
         }
 
-        private double calculateCovariance(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates, List<AssetPrice> riskFreeRates, 
+        private double calculateCovariance(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates, List<AssetPrice> riskFreeRates,
             double expectedValue_Asset, double expectedValue_Market, bool meanRateMethodIsSimple)
         {
             double covariance = 0;
@@ -372,7 +374,7 @@ namespace FinanceAppMVC.Controllers
                 for (int j = 0; j < assets.Count; j++)
                 {
                     var prices_i = assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
-                    var prices_j =  assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    var prices_j = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
                     correlationMatrix[i, j] = calculateCorrelation(prices_i, prices_j, marketRates);
                 }
             }
@@ -469,7 +471,7 @@ namespace FinanceAppMVC.Controllers
         {
             double correlation = 0;
 
-            correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1) 
+            correlation = calculateCovariance(queriedPrices1, queriedPrices2) / (calculateStandardDev(queriedPrices1)
                 * calculateStandardDev(queriedPrices2));
             double x = calculateCovariance(queriedPrices1, queriedPrices2);
             double y = (calculateStandardDev(queriedPrices1)
@@ -682,7 +684,7 @@ namespace FinanceAppMVC.Controllers
         private List<AssetPrice> getQuotes(String ticker)
         {
             DateTime endDate = DateTime.Today;
-            String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) + 
+            String url = "http://ichart.yahoo.com/table.csv?s=" + Server.UrlEncode(ticker) +
                 "&a=0&b=1&c=2000" +
                 "&d=" + (endDate.Month - 1)
                 + "&e=" + endDate.Day + "&f=" + endDate.Year + "&g=d&ignore=.csv";
@@ -690,7 +692,7 @@ namespace FinanceAppMVC.Controllers
             using (WebClient client = new WebClient())
             {
                 String csv = client.DownloadString(url);
-                char[] delims = {',', '\n'};
+                char[] delims = { ',', '\n' };
                 String[] quotes = csv.Split(delims);
                 List<AssetPrice> assetPrices = new List<AssetPrice>();
                 for (int i = 7; i < quotes.Length - 1; i += 7)

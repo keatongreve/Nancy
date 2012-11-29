@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace PortfolioQuadraticOptimizationService.DataContracts
+namespace PortfolioQuadraticOptimization.DataContracts
 {
     [DataContract]
     public class AssetData

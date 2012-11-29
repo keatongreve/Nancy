@@ -1,9 +1,10 @@
 ﻿using Microsoft.SolverFoundation.Services;
 using Microsoft.SolverFoundation.Solvers;
-using PortfolioQuadraticOptimizationService.DataContracts;
+using PortfolioQuadraticOptimization.ServiceContracts;
+using PortfolioQuadraticOptimization.DataContracts;
 using System.Collections.Generic;
 
-namespace PortfolioQuadraticOptimizationService
+namespace PortfolioQuadraticOptimization
 {
     public class PortfolioQuadraticOptimizationService : IPortfolioQuadraticOptimizationService
     {
@@ -50,8 +51,17 @@ namespace PortfolioQuadraticOptimizationService
 
             solver.Solve(lpParams);
 
-            bool optimal = (solver.Result == LinearResult.Optimal);
-            bool feasible = (solver.Result == LinearResult.Feasible);
+            bool optimal = false;
+            bool feasible = false;
+            if (solver.Result == LinearResult.Optimal)
+            {
+                optimal = feasible = true;
+            }
+            else if (solver.Result == LinearResult.Feasible)
+            {
+                optimal = false;
+                feasible = true;
+            }
 
             List<AssetResult> assetResults = new List<AssetResult>();
             for (int i = 0; i < assetCount; i++)
@@ -63,28 +73,13 @@ namespace PortfolioQuadraticOptimizationService
                 });
             }
 
-            OptimizationResult result;
-
-            if (solver.Result != LinearResult.Optimal)
+            OptimizationResult result = new OptimizationResult
             {
-                result = new OptimizationResult
-                {
-                    Optimal = false,
-                    Feasible = false,
-                    ExpectedRateOfReturn = 0,
-                    AssetResults = null
-                };
-            }
-            else
-            {
-                result = new OptimizationResult
-                {
-                    Optimal = optimal,
-                    Feasible = feasible,
-                    ExpectedRateOfReturn = (double)solver.GetValue(expectedRateOfReturn),
-                    AssetResults = assetResults
-                };
-            }
+                Optimal = optimal,
+                Feasible = feasible,
+                ExpectedRateOfReturn = expectedRateOfReturn,
+                AssetResults = assetResults
+            };
 
             return result;
         }

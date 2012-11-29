@@ -8,13 +8,14 @@ using System.Text;
 using Microsoft.SolverFoundation.Common;
 using Microsoft.SolverFoundation.Services;
 using Microsoft.SolverFoundation.Solvers;
-using PortfolioQuadraticOptimizationService.DataContracts;
+using PortfolioQuadraticOptimization.DataContracts;
 
-namespace PortfolioQuadraticOptimizationService
+namespace PortfolioQuadraticOptimization.ServiceContracts
 {
     [ServiceContract]
     public interface IPortfolioQuadraticOptimizationService
     {
+        [OperationContract]
         OptimizationResult OptimizePortfolioAllocation(OptimizationData data);
     }
 }

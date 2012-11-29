@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace PortfolioQuadraticOptimizationService.DataContracts
+namespace PortfolioQuadraticOptimization.DataContracts
 {
     public class OptimizationResult
     {

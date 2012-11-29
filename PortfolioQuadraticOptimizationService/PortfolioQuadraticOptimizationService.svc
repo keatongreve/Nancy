@@ -1,1 +1,1 @@
-﻿<%@ ServiceHost Language="C#" Debug="true" Service="PortfolioQuadraticOptimizationService.PortfolioQuadraticOptimizationService" CodeBehind="PortfolioQuadraticOptimizationService.svc.cs" %>
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="PortfolioQuadraticOptimization.PortfolioQuadraticOptimizationService" CodeBehind="PortfolioQuadraticOptimizationService.svc.cs" %>
