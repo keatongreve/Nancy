@@ -114,12 +114,11 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult Asset(int id, String meanRateMethod, String date = "")
         {
-
-            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
+            Asset asset = db.Assets.Include(a => a.Portfolio).Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = asset.Portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
@@ -239,14 +238,15 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult RiskAnalysis(int id = 0, String date = "")
         {
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
+            List<Asset> assets = portfolio.Assets.ToList();
 
-            List<Asset> assets = db.Assets.Include(a => a.Prices).Where(a => a.PortfolioID == id).ToList();
             DateTime startDate;
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
@@ -522,7 +522,7 @@ namespace FinanceAppMVC.Controllers
 
             DateTime startDate;
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
