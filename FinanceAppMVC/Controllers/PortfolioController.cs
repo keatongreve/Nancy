@@ -60,6 +60,29 @@ namespace FinanceAppMVC.Controllers
             return View(portfolio);
         }
 
+        public ActionResult EditDefaultStartDate(int id)
+        {
+            var portfolio = db.Portfolios.Find(id);
+            return PartialView(portfolio);
+        }
+
+        [HttpPost]
+        public ActionResult EditDefaultStartDate(Portfolio portfolio)
+        {
+            try
+            {
+                var oldPortfolio = db.Portfolios.Find(portfolio.ID);
+                oldPortfolio.DefaultStartDate = portfolio.DefaultStartDate;
+                db.Entry(oldPortfolio).State = EntityState.Modified;
+                db.SaveChanges();
+                return Json(new { ReturnValue = 0, Message = "Default start date has been changed." });
+            }
+            catch (Exception e)
+            {
+                return Json(new { ReturnValue = -1, Message = e.Message });
+            }
+        }
+
         public ActionResult AddAsset(int portfolioID)
         {
             return PartialView("AddAsset", new Asset { PortfolioID = portfolioID });
