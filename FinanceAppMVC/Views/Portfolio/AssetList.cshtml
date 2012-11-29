@@ -119,10 +119,16 @@
     </tr>
     <tr>
         <td colspan="3">
-            <h4>@Html.ActionLink("View Risk Analysis", "RiskAnalysis", new { id = portfolioID })</h4>
+            <form action="@Url.Action("RiskAnalysis", "Portfolio")">
+                    <input type="hidden" name="id" value="@portfolioID" />
+                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Risk Analysis</a>
+                </form>
         </td>
         <td id="portfolioStatistics" style="display:none">
-            <h4>@Html.ActionLink("View Portfolio Statistics", "PortfolioStatistics", new { id = portfolioID })</h4>
+            <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
+                    <input type="hidden" name="id" value="@portfolioID" />
+                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Portfolio Statistics</a>
+                </form>
         </td>
     </tr>
     }

@@ -309,7 +309,7 @@ namespace FinanceAppMVC.Controllers
             return AssetList(portfolioID);
         }
 
-        public ActionResult RiskAnalysis(int id = 0, String date = "")
+        public ActionResult RiskAnalysis(String meanRateMethod, int id = 0, String date = "")
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
             List<Asset> assets = portfolio.Assets.ToList();
@@ -318,34 +318,32 @@ namespace FinanceAppMVC.Controllers
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
+            bool meanRateMethodIsSimple;
+            if (meanRateMethod.Equals("Simple"))
+                meanRateMethodIsSimple = true;
+            else
+                meanRateMethodIsSimple = false;
+
             if (date == "")
                 startDate = portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
             List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
+            marketRates.RemoveAt(0);
 
             double totalInverseVolatility = 0;
             foreach (Asset asset in assets)
             {
-                List<AssetPrice> prices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+                List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+                queriedPrices.RemoveAt(0);
 
-                prices[0].SimpleRateOfReturn = 0;
-                prices[0].LogRateOfReturn = 0;
+                asset.Prices = queriedPrices;
 
-                asset.Prices = prices;
-
-                asset.DailyMeanRate = asset.Prices.Sum(p => p.SimpleRateOfReturn) / (asset.Prices.Count - 1);
+                asset.DailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
                 asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
 
-                double aggregateVariance = 0;
-                double meanStockPrice = asset.Prices.Sum(p => p.ClosePrice) / (asset.Prices.Count - 1);
-                foreach (AssetPrice p in prices)
-                {
-                    aggregateVariance += Math.Pow(p.SimpleRateOfReturn - asset.DailyMeanRate, 2);
-                }
-
-                asset.DailyVariance = aggregateVariance / (asset.Prices.Count - 1);
+                asset.DailyVariance = calculateVariance(queriedPrices, asset.DailyMeanRate, meanRateMethodIsSimple);
                 asset.AnnualizedVariance = asset.DailyVariance * 252;
 
                 asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
@@ -362,13 +360,11 @@ namespace FinanceAppMVC.Controllers
             {
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
-                        assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
-                }
-            }
+                    List<AssetPrice> prices_i = assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    List<AssetPrice> prices_j = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    double covariance = calculateCovariance(prices_i, assets[i].DailyMeanRate, prices_j, assets[j].DailyMeanRate, meanRateMethodIsSimple);
 
-            ViewBag.CovarianceMatrix = covarianceMatrix;
-
+<<<<<<< HEAD
             for (int i = 0; i < assets.Count; i++)
             {
                 for (int j = 0; j < assets.Count; j++)
@@ -376,9 +372,15 @@ namespace FinanceAppMVC.Controllers
                     var prices_i = assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
                     var prices_j = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
                     correlationMatrix[i, j] = calculateCorrelation(prices_i, prices_j, marketRates);
+=======
+                    covarianceMatrix[i, j] = covariance;
+                    correlationMatrix[i, j] = calculateCorrelation(prices_i, assets[i].DailyMeanRate, prices_j, assets[j].DailyMeanRate,
+                        covariance, meanRateMethodIsSimple);
+>>>>>>> ce8119187deb1b213d1a374567c0feea77d6a10f
                 }
             }
 
+            ViewBag.CovarianceMatrix = covarianceMatrix;
             ViewBag.CorrelationMatrix = correlationMatrix;
 
 
@@ -401,6 +403,7 @@ namespace FinanceAppMVC.Controllers
             base.Dispose(disposing);
         }
 
+<<<<<<< HEAD
         private double calculateCovariance(List<AssetPrice> queriedPrices1, List<AssetPrice> queriedPrices2)
         {
             double covariance = 0;
@@ -562,6 +565,8 @@ namespace FinanceAppMVC.Controllers
             return expectedValue;
         }
 
+=======
+>>>>>>> ce8119187deb1b213d1a374567c0feea77d6a10f
         [HttpPost]
         public ActionResult SetPortfolioAllocation(int portfolioId, string weightList)
         {
@@ -589,9 +594,16 @@ namespace FinanceAppMVC.Controllers
             }
         }
 
-        public ActionResult PortfolioStatistics(int id, String date = "")
+        public ActionResult PortfolioStatistics(int id, String meanRateMethod, String date = "")
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
+
+            bool meanRateMethodIsSimple;
+
+            if (meanRateMethod.Equals("Simple"))
+                meanRateMethodIsSimple = true;
+            else
+                meanRateMethodIsSimple = false;
 
             DateTime startDate;
             if (date == "")
@@ -609,36 +621,32 @@ namespace FinanceAppMVC.Controllers
             double val_Beta = 0;
             double[,] covarianceMatrix = new double[assets.Count + 1, assets.Count + 1];
 
+            List<AssetPrice> riskFreeRates = getQuotes("^IRX").ToList().Where(price => price.Date >= startDate).ToList();
+            riskFreeRates.RemoveAt(0);
+
             List<AssetPrice> marketRates = getQuotes("SPY").ToList().Where(price => price.Date >= startDate).ToList();
             marketRates.RemoveAt(0);
-            List<AssetPrice> treasuryRates = getQuotes("^IRX").ToList().Where(price => price.Date >= startDate).ToList();
-            treasuryRates.RemoveAt(0);
+            double meanMarketRate = calculateDailyMeanRate(marketRates, meanRateMethodIsSimple);
+            double expectedValue_Market = calculateExpectedValue(marketRates, riskFreeRates, meanRateMethodIsSimple);
 
             foreach (Asset a in assets)
             {
                 List<AssetPrice> queriedPrices = a.Prices.Where(price => price.Date >= startDate).ToList();
                 queriedPrices.RemoveAt(0);
+                double dailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
+                double expectedValue_Asset = calculateExpectedValue(queriedPrices, riskFreeRates, meanRateMethodIsSimple);
 
-                a.AnnualizedMeanRate = calculateExpectedValue(queriedPrices) * 252;
-                a.AnnualizedStandardDeviation = calculateStandardDev(queriedPrices) * Math.Sqrt(252);
+                a.AnnualizedMeanRate = dailyMeanRate * 252;
+                a.AnnualizedStandardDeviation = Math.Sqrt(calculateVariance(queriedPrices, dailyMeanRate, meanRateMethodIsSimple) * 252);
 
                 val_MeanRateOfReturn += a.AnnualizedMeanRate * a.Weight;
                 val_StandardDeviation += a.AnnualizedStandardDeviation * a.Weight;
-                val_MarketCorrelation += calculateCovariance(queriedPrices, marketRates) * a.Weight;
-                val_Variance = calculateVariance(treasuryRates, marketRates, queriedPrices.Count);
-                val_Covariance = calculateCovarianceWithMarketRates(queriedPrices, marketRates, treasuryRates);
+                val_MarketCorrelation += calculateCovariance(queriedPrices, dailyMeanRate, marketRates, meanMarketRate, meanRateMethodIsSimple) * a.Weight;
+                val_Variance = calculateRiskFreeVariance(queriedPrices, riskFreeRates, expectedValue_Asset, meanRateMethodIsSimple);
+                val_Covariance = calculateCovariance(queriedPrices, marketRates, riskFreeRates, expectedValue_Asset, expectedValue_Market, meanRateMethodIsSimple);
                 val_Beta += (val_Covariance / val_Variance) * a.Weight;
 
-                double val_SummedSharpe = 0;
-                foreach (AssetPrice price in a.Prices)
-                {
-                    var rate = treasuryRates.Where(x => x.Date == price.Date).FirstOrDefault();
-                    if (rate != null)
-                    {
-                        val_SummedSharpe += price.LogRateOfReturn - rate.ClosePrice;
-                    }
-                }
-                val_Sharpe += val_SummedSharpe / Math.Sqrt(val_Variance * queriedPrices.Count / 252) * a.Weight;
+                val_Sharpe += (expectedValue_Asset * queriedPrices.Count) / Math.Sqrt((val_Variance * Math.Pow(queriedPrices.Count, 2)) / 252) * a.Weight;
             }
 
             portfolio.meanRateOfReturn = val_MeanRateOfReturn;
@@ -651,34 +659,216 @@ namespace FinanceAppMVC.Controllers
             {
                 for (int j = 0; j < assets.Count; j++)
                 {
+                    List<AssetPrice> prices = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    double meanRate = calculateDailyMeanRate(prices, meanRateMethodIsSimple);
                     if (i == assets.Count)
                     {
-                        covarianceMatrix[i, j] = calculateCovariance(marketRates,
-                            assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                        covarianceMatrix[i, j] = calculateCovariance(marketRates, expectedValue_Market,
+                            prices, meanRate, meanRateMethodIsSimple);
                     }
                     else if (j == assets.Count)
                     {
-                        covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
-                            marketRates);
+                        covarianceMatrix[i, j] = calculateCovariance(prices, meanRate,
+                            marketRates, expectedValue_Market, meanRateMethodIsSimple);
                     }
                     else if (i == assets.Count && j == assets.Count)
                     {
-                        covarianceMatrix[i, j] = calculateCovariance(marketRates, marketRates);
+                        covarianceMatrix[i, j] = calculateCovariance(marketRates, expectedValue_Market, marketRates, expectedValue_Market, meanRateMethodIsSimple);
                     }
                     else
                     {
-                        covarianceMatrix[i, j] = calculateCovariance(assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList(),
-                            assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList());
+                        covarianceMatrix[i, j] = calculateCovariance(prices, meanRate, prices, meanRate, meanRateMethodIsSimple);
                         val_Variance += covarianceMatrix[i, j] * assets[i].Weight * assets[j].Weight;
                     }
                 }
             }
             double stdDev = Math.Sqrt(val_Variance);
-            portfolio.marketCorrelation = val_MarketCorrelation / (calculateStandardDev(marketRates) * stdDev);
+            portfolio.marketCorrelation = val_MarketCorrelation / (Math.Sqrt(calculateVariance(marketRates, meanMarketRate, meanRateMethodIsSimple)) * stdDev);
             portfolio.standardDeviation = stdDev * Math.Sqrt(252);
             portfolio.sharpeRatio = portfolio.meanRateOfReturn / portfolio.standardDeviation;
 
             return View("PortfolioStatistics", portfolio);
+        }
+
+        private double calculateDailyMeanRate(List<AssetPrice> prices, bool meanRateMethodIsSimple)
+        {
+            double meanRate;
+
+            if (meanRateMethodIsSimple)
+                meanRate = prices.Sum(p => p.SimpleRateOfReturn) / (prices.Count);
+            else
+                meanRate = prices.Sum(p => p.LogRateOfReturn) / (prices.Count);
+            return meanRate;
+        }
+
+        private double calculateExpectedValue(List<AssetPrice> assetPrices)
+        {
+            double expectedValue = 0;
+            foreach (var p in assetPrices)
+            {
+                expectedValue += p.SimpleRateOfReturn;
+            }
+            expectedValue = expectedValue / assetPrices.Count;
+            return expectedValue;
+        }
+
+        private double calculateVariance(List<AssetPrice> prices, double meanRate, bool meanRateMethodIsSimple)
+        {
+            double variance = 0;
+
+            if (meanRateMethodIsSimple)
+            {
+                foreach (AssetPrice price in prices)
+                {
+                    variance += Math.Pow(price.SimpleRateOfReturn - meanRate, 2);
+                }
+            }
+            else
+            {
+                foreach (AssetPrice price in prices)
+                {
+                    variance += Math.Pow(price.LogRateOfReturn - meanRate, 2);
+                }
+            }
+
+            return variance / prices.Count;
+        }
+
+        private double calculateRiskFreeVariance(List<AssetPrice> queriedPrices, List<AssetPrice> riskFreeRates, double expectedValue, bool meanRateMethodIsSimple)
+        {
+            double variance = 0;
+
+            if (meanRateMethodIsSimple)
+            {
+                foreach (AssetPrice price in queriedPrices)
+                {
+                    var rate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        variance += Math.Pow(price.SimpleRateOfReturn - rate.ClosePrice - expectedValue, 2);
+                    }
+                }
+            }
+            else
+            {
+                foreach (AssetPrice price in queriedPrices)
+                {
+                    var rate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        variance += Math.Pow(price.LogRateOfReturn - rate.ClosePrice - expectedValue, 2);
+                    }
+                }
+            }
+
+            return variance / queriedPrices.Count;
+        }
+
+        private double calculateExpectedValue(List<AssetPrice> queriedPrices, List<AssetPrice> riskFreeRates, bool meanRateMethodIsSimple)
+        {
+            double expectedValue = 0;
+
+            if (meanRateMethodIsSimple)
+            {
+                foreach (var price in queriedPrices)
+                {
+                    var rate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        expectedValue += price.SimpleRateOfReturn - rate.ClosePrice;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var price in queriedPrices)
+                {
+                    var rate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        expectedValue += price.LogRateOfReturn - rate.ClosePrice;
+                    }
+                }
+            }
+
+            return expectedValue / queriedPrices.Count;
+        }
+
+        private double calculateCovariance(List<AssetPrice> queriedPrices, List<AssetPrice> marketRates, List<AssetPrice> riskFreeRates,
+            double expectedValue_Asset, double expectedValue_Market, bool meanRateMethodIsSimple)
+        {
+            double covariance = 0;
+
+            if (meanRateMethodIsSimple)
+            {
+                foreach (var price in queriedPrices)
+                {
+                    var riskFreeRate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    var marketRate = marketRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (riskFreeRate != null && marketRate != null)
+                    {
+                        covariance += (price.SimpleRateOfReturn - riskFreeRate.ClosePrice - expectedValue_Asset) *
+                            (marketRate.SimpleRateOfReturn - riskFreeRate.ClosePrice - expectedValue_Market);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var price in queriedPrices)
+                {
+                    var riskFreeRate = riskFreeRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    var marketRate = marketRates.Where(x => x.Date == price.Date).FirstOrDefault();
+                    if (riskFreeRate != null && marketRate != null)
+                    {
+                        covariance += (price.LogRateOfReturn - riskFreeRate.ClosePrice - expectedValue_Asset) *
+                            (marketRate.LogRateOfReturn - riskFreeRate.ClosePrice - expectedValue_Market);
+                    }
+                }
+            }
+
+            return covariance / queriedPrices.Count;
+        }
+
+        private double calculateCovariance(List<AssetPrice> queriedPrices1, double expectedValue1, List<AssetPrice> queriedPrices2, 
+            double expectedValue2, bool meanRateMethodIsSimple)
+        {
+            double covariance = 0;
+
+            if (meanRateMethodIsSimple)
+            {
+                foreach (var p in queriedPrices1)
+                {
+                    var rate = queriedPrices2.Where(x => x.Date == p.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        covariance += ((p.SimpleRateOfReturn - expectedValue1) * (rate.SimpleRateOfReturn - expectedValue2));
+                    }
+                }
+            }
+            else
+            {
+                foreach (var p in queriedPrices1)
+                {
+                    var rate = queriedPrices2.Where(x => x.Date == p.Date).FirstOrDefault();
+                    if (rate != null)
+                    {
+                        covariance += ((p.LogRateOfReturn - expectedValue1) * (rate.LogRateOfReturn - expectedValue2));
+                    }
+                }
+            }
+
+            covariance = covariance / (queriedPrices1.Count);
+
+            return covariance;
+        }
+
+        private double calculateCorrelation(List<AssetPrice> queriedPrices1, double meanRate1, List<AssetPrice> queriedPrices2, double meanRate2,
+            double covariance, bool meanRateMethodIsSimple)
+        {
+            double correlation = covariance / (Math.Sqrt(calculateVariance(queriedPrices1, meanRate1, meanRateMethodIsSimple) * 
+                calculateVariance(queriedPrices2, meanRate2, meanRateMethodIsSimple)));
+
+            return correlation;
         }
 
         private List<AssetPrice> getQuotes(String ticker)
