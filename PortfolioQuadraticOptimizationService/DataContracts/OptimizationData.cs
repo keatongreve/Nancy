@@ -10,7 +10,7 @@ namespace PortfolioQuadraticOptimizationService.DataContracts
     public class OptimizationData
     {
         public double MinimumRateOfReturn { get; set; }
-        public ICollection<AssetData> Assets { get; set; }
+        public List<AssetData> Assets { get; set; }
 
         public OptimizationData()
         {
@@ -18,7 +18,13 @@ namespace PortfolioQuadraticOptimizationService.DataContracts
             Assets = new List<AssetData>();
         }
 
-        public OptimizationData(int minimumRateOfReturn, ICollection<AssetData> assets)
+        public OptimizationData(int minimumRateOfReturn)
+        {
+            MinimumRateOfReturn = minimumRateOfReturn;
+            Assets = new List<AssetData>();
+        }
+
+        public OptimizationData(int minimumRateOfReturn, List<AssetData> assets)
         {
             MinimumRateOfReturn = minimumRateOfReturn;
             Assets = assets;
