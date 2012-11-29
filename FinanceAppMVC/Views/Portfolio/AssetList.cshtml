@@ -53,12 +53,22 @@
                 });
             }
         });
+
+        $(".formAnchor").click(function() {
+            var input = $('<input>').attr({type: 'hidden', name: 'meanRateMethod', value: $("[name='meanRateMethod']:checked").val()});
+            $(this).parent('form').append($(input));
+            $(this).parent('form').submit();
+        });
     });
 </script>
 
 <div id="loader" style="display: none">
     <img src="~/Images/ajax-loader.gif" /></div>
 <h2>My Assets</h2>
+
+<h3>Mean Rate of Return Calculation Method:</h3>
+<input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>Simple<br />
+<input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>Logarithmic<br />
 
 <table>
     <tr>
@@ -80,10 +90,10 @@
                 @Html.DisplayFor(modelItem => item.Symbol)
             </td>
             <td>
-                @*<input type="submit" name="statsButton" value="View Portfolio Statistics" />*@
-                <input type="hidden" id="weightList" name="weightList" />
-                <input type="hidden" value="@Model.First().PortfolioID" name="portfolioID" />
-                @Html.ActionLink("Details", "Asset", new { id = item.ID })
+                <form action="@Url.Action("Asset", "Portfolio")">
+                    <input type="hidden" name="id" value="@item.ID" />
+                    <a href="javascript:void(0)" class="formAnchor">Details</a>
+                </form>
             </td>
             <td>
                 @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions)

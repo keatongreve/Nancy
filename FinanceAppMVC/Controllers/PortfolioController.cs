@@ -89,14 +89,14 @@ namespace FinanceAppMVC.Controllers
             return PartialView("AssetList", portfolio.Assets.OrderBy(a => a.ID).ToList());
         }
 
-        public ActionResult Asset(int id, String date = "")
+        public ActionResult Asset(int id, String meanRateMethod, String date = "")
         {
 
             Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
             else
                 startDate = DateTime.Parse(date);
 
@@ -223,7 +223,7 @@ namespace FinanceAppMVC.Controllers
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
             else
                 startDate = DateTime.Parse(date);
 
@@ -499,7 +499,7 @@ namespace FinanceAppMVC.Controllers
 
             DateTime startDate;
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(7));
+                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
             else
                 startDate = DateTime.Parse(date);
 
