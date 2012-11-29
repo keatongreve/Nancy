@@ -233,8 +233,9 @@
 
 <h2>@Model.Symbol</h2>
 
-@using (Html.BeginForm("Asset", "Portfolio", FormMethod.Get))
+@using (Html.BeginForm("Asset", "Portfolio", new { id = @Model.ID }, FormMethod.Get))
 {
+    <input type="hidden" name="meanRateMethod" value="@Request["meanRateMethod"]" />
     <div class="editor-field">
         @Html.Label("Pick starting date: ")
         @Html.TextBox("date", null, new { id = "date" })
@@ -255,8 +256,8 @@
         </tr>
         <tr>
             @{
-                if (Model.Prices.Count < 252)
-                {
+    if (Model.Prices.Count < 252)
+    {
                     <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
                     <td>N/A</td>
                     <td>@String.Format("{0:N}", Model.DailyVariance)</td>
@@ -266,9 +267,9 @@
                 <td>@String.Format("{0:F4}", Model.HistoricalCorrelation)</td>
                 <td>@String.Format("{0:F4}", Model.SharpeRatio)</td>
                 <td>@String.Format("{0:F4}", Model.Beta)</td>
-            }
-                else
-                {
+    }
+    else
+    {
                     <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
                     <td>@String.Format("{0:P}", Model.AnnualizedMeanRate)</td>
                     <td>@String.Format("{0:N}", Model.DailyVariance)</td>
@@ -278,7 +279,7 @@
                 <td>@String.Format("{0:N}", Model.HistoricalCorrelation)</td>
                 <td>@String.Format("{0:N}", Model.SharpeRatio)</td>
                 <td>@String.Format("{0:N}", Model.Beta)</td>
-            }
+    }
             }
         </tr>
     </table>
