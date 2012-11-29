@@ -1,0 +1,49 @@
+﻿@model FinanceAppMVC.Models.Portfolio
+
+@{
+    var options = new AjaxOptions {
+      Url = Url.Action("EditDefaultStartDate", "Portfolio"),
+      UpdateTargetId = "AssetList",
+      HttpMethod = "POST",
+      LoadingElementId = "loader2",
+      OnSuccess = "EditDateSuccessCallback"
+    };
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#DefaultStartDate").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#DefaultStartDate").val("@Model.DefaultStartDate.ToString("yyyy-MM-dd")");
+    });
+
+    function EditDateSuccessCallback(data) {
+        if (data.ReturnValue == 0) {
+            alert(data.Message);
+        } else {
+            alert("Error " + data.ReturnValue + ": " + data.Message);
+        }
+    }
+</script>
+
+<h3>Edit Default Start Date</h3>
+@using (Ajax.BeginForm(options)) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Asset</legend>
+
+        <div class="editor-field">            
+            @Html.EditorFor(model => model.DefaultStartDate)
+            @Html.ValidationMessageFor(model => model.DefaultStartDate)
+        </div>
+
+        @Html.HiddenFor(model => model.ID)
+        @Html.HiddenFor(model => model.DateCreated)
+
+        <input id="save_date" type="submit" value="Save" />
+
+        <div id="loader2" style="display: none">
+            <img src="~/Images/ajax-loader.gif" />
+        </div>
+    </fieldset>
+}

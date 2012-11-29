@@ -60,6 +60,29 @@ namespace FinanceAppMVC.Controllers
             return View(portfolio);
         }
 
+        public ActionResult EditDefaultStartDate(int id)
+        {
+            var portfolio = db.Portfolios.Find(id);
+            return PartialView(portfolio);
+        }
+
+        [HttpPost]
+        public ActionResult EditDefaultStartDate(Portfolio portfolio)
+        {
+            try
+            {
+                var oldPortfolio = db.Portfolios.Find(portfolio.ID);
+                oldPortfolio.DefaultStartDate = portfolio.DefaultStartDate;
+                db.Entry(oldPortfolio).State = EntityState.Modified;
+                db.SaveChanges();
+                return Json(new { ReturnValue = 0, Message = "Default start date has been changed." });
+            }
+            catch (Exception e)
+            {
+                return Json(new { ReturnValue = -1, Message = e.Message });
+            }
+        }
+
         public ActionResult AddAsset(int portfolioID)
         {
             return PartialView("AddAsset", new Asset { PortfolioID = portfolioID });
@@ -91,12 +114,11 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult Asset(int id, String meanRateMethod, String date = "")
         {
-
-            Asset asset = db.Assets.Include(a => a.Prices).Where(a => a.ID == id).First();
+            Asset asset = db.Assets.Include(a => a.Portfolio).Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = asset.Portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
@@ -287,14 +309,15 @@ namespace FinanceAppMVC.Controllers
 
         public ActionResult RiskAnalysis(int id = 0, String date = "")
         {
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
+            List<Asset> assets = portfolio.Assets.ToList();
 
-            List<Asset> assets = db.Assets.Include(a => a.Prices).Where(a => a.PortfolioID == id).ToList();
             DateTime startDate;
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
@@ -570,7 +593,7 @@ namespace FinanceAppMVC.Controllers
 
             DateTime startDate;
             if (date == "")
-                startDate = DateTime.Today.Subtract(System.TimeSpan.FromDays(30));
+                startDate = portfolio.DefaultStartDate;
             else
                 startDate = DateTime.Parse(date);
 
