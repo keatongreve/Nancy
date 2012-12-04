@@ -236,6 +236,10 @@
 @using (Html.BeginForm("Asset", "Portfolio", new { id = @Model.ID }, FormMethod.Get))
 {
     <input type="hidden" name="meanRateMethod" value="@Request["meanRateMethod"]" />
+    <input type="hidden" name="expectedRateMethod" value="@Request["expectedRateMethod"]" />
+    <input type="hidden" name="riskFreeRate" value="@Request["riskFreeRate"]" />
+    <input type="hidden" name="MRP" value="@Request["MRP"]" />
+    <input type="hidden" name="dateIsModified" value="true" />
     <div class="editor-field">
         @Html.Label("Pick starting date: ")
         @Html.TextBox("date", null, new { id = "date" })

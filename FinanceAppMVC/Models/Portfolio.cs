@@ -22,5 +22,6 @@ namespace FinanceAppMVC.Models
         public double marketCorrelation { get; set; }
         public double beta { get; set; }
         public double sharpeRatio { get; set; }
+        public bool statsCalculated { get; set; }
     }
 }
