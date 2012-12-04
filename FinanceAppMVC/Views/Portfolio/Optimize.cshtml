@@ -1,6 +1,9 @@
-﻿@{
+﻿@using PortfolioQuadraticOptimization.DataContracts
+
+@{    
     ViewBag.Title = "Optimize";
     Dictionary<string, double> Results = ViewBag.Results as Dictionary<string, double>;
+    OptimizationResult[] efficientFrontier = ViewBag.EfficientFrontier as OptimizationResult[];
 }
 
 <h2>Optimization Results</h2>
@@ -20,3 +23,15 @@
 </table>
 
 <p>This allocation will give a rate of return of @String.Format("{0:P4}", ViewBag.ExpectedRateOfReturn)</p>
+
+
+@for (int i = 0; i < efficientFrontier.Count(); i++)
+{
+    var entry = efficientFrontier[i];
+    string resultData = "";
+    foreach (AssetResult r in entry.Results)
+    {
+        resultData += String.Format("{0}-{1:F4},", r.Symbol, r.Allocation);
+    }
+    <p>@String.Format("{0}: {1}, MeanRate = {2:P4}", i, resultData, entry.ExpectedReturn)</p>
+}
