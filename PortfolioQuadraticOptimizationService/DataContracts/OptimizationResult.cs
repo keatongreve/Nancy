@@ -9,7 +9,7 @@ namespace PortfolioQuadraticOptimization.DataContracts
     {
         public bool Feasible { get; set; }
         public bool Optimal { get; set; }
-        public double ExpectedRateOfReturn { get; set; }
-        public List<AssetResult> AssetResults { get; set; }
+        public double ExpectedReturn { get; set; }
+        public List<AssetResult> Results { get; set; }
     }
 }

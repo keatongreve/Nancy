@@ -1,0 +1,22 @@
+﻿@{
+    ViewBag.Title = "Optimize";
+    Dictionary<string, double> Results = ViewBag.Results as Dictionary<string, double>;
+}
+
+<h2>Optimization Results</h2>
+
+<p>Solution is @(ViewBag.Feasible ? "Feasible" : "Not feasible")</p>
+<p>Solution is @(ViewBag.Optimal ? "Optimal" : "Not optimal")</p>
+
+<h3>Allocations required for minimum risk:</h3>
+<table>
+@foreach (string key in Results.Keys)
+{
+    <tr>
+        <td>@key</td>
+        <td>@String.Format("{0:P4}", Results[key])</td>
+    </tr>
+}
+</table>
+
+<p>This allocation will give a rate of return of @String.Format("{0:P4}", ViewBag.ExpectedRateOfReturn)</p>

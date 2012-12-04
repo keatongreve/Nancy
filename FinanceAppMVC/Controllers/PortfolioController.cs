@@ -9,6 +9,9 @@ using FinanceAppMVC.Models;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using PortfolioQuadraticOptimization;
+using PortfolioQuadraticOptimization.DataContracts;
+using System.IO;
 
 namespace FinanceAppMVC.Controllers
 {
@@ -426,6 +429,88 @@ namespace FinanceAppMVC.Controllers
             portfolio.sharpeRatio = portfolio.meanRateOfReturn / portfolio.standardDeviation;
 
             return View("PortfolioStatistics", portfolio);
+        }
+
+        public ActionResult Optimize(int id, int minimumRateOfReturn, string date = "")
+        {
+            Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
+
+            DateTime startDate;
+            if (date == "")
+                startDate = portfolio.DefaultStartDate;
+            else
+                startDate = DateTime.Parse(date);
+
+            PortfolioQuadraticOptimizationService service = new PortfolioQuadraticOptimizationService();
+
+            OptimizationData inputData = new OptimizationData();
+            inputData.MinimumReturn = minimumRateOfReturn;
+
+            List<AssetData> assetData = new List<AssetData>();
+
+            foreach (Asset a in portfolio.Assets)
+            {
+                var aPrices = a.Prices.Where(x => x.Date >= startDate).ToList();
+
+                a.AnnualizedMeanRate = calculateDailyMeanRate(aPrices, true) * 252;
+
+                var covariances = new Dictionary<string, double>();
+                foreach (Asset a2 in portfolio.Assets)
+                {
+                    var a2Prices = a2.Prices.Where(x => x.Date >= startDate).ToList();
+                    var aExpectedVal = calculateExpectedValue(aPrices);
+                    var a2ExpecteVal = calculateExpectedValue(a2Prices);
+                    covariances.Add(a2.Symbol, calculateCovariance(aPrices, aExpectedVal, a2Prices, a2ExpecteVal, true));
+                }
+
+                assetData.Add(new AssetData
+                {
+                    Symbol = a.Symbol,
+                    MeanReturnRate = a.AnnualizedMeanRate,
+                    Covariances = covariances
+                });
+            }
+
+            inputData.Stocks = assetData;
+
+            //OptimizationResult result = service.OptimizePortfolioAllocation(inputData);
+
+            var request = WebRequest.Create("http://optimization.andrewgaspar.com/api/optimize");
+            request.ContentType = "application/json";
+            request.Method = "POST";
+            StreamWriter writer = new StreamWriter(request.GetRequestStream());
+            string json = JsonConvert.SerializeObject(inputData);
+            writer.Write(json);
+            writer.Close();
+
+            OptimizationResult result = new OptimizationResult();
+
+            try
+            {
+                using (var response = request.GetResponse())
+                {
+                    request.GetRequestStream().Close();
+                    if (response != null)
+                    {
+                        using (var answerReader = new StreamReader(response.GetResponseStream()))
+                        {
+                            var readString = answerReader.ReadToEnd();
+                            result = JsonConvert.DeserializeObject<OptimizationResult>(readString);
+                        }
+                    }
+                }
+            }
+            catch (WebException e)
+            {
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.Results = result.Results.ToDictionary(r => r.Symbol, r => r.Allocation);
+            ViewBag.Feasible = result.Feasible;
+            ViewBag.Optimal = result.Optimal;
+            ViewBag.ExpectedRateOfReturn = result.ExpectedReturn;
+
+            return View();
         }
 
         private double calculateDailyMeanRate(List<AssetPrice> prices, bool meanRateMethodIsSimple)

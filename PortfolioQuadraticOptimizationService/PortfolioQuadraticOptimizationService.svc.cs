@@ -10,20 +10,23 @@ namespace PortfolioQuadraticOptimization
     {
         public OptimizationResult OptimizePortfolioAllocation(OptimizationData data)
         {
-            int assetCount = data.Assets.Count;
+            int assetCount = data.Stocks.Count;
 
             InteriorPointSolver solver = new InteriorPointSolver();
             int[] allocations = new int[assetCount];
 
             for (int i = 0; i < assetCount; i++)
             {
-                solver.AddVariable(data.Assets[i].Symbol, out allocations[i]);
-                solver.SetBounds(allocations[i], 0, 1);
+                solver.AddVariable(data.Stocks[i].Symbol, out allocations[i]);
+                if (data.Stocks[i].Symbol == "SPY")
+                    solver.SetBounds(allocations[i], 0, 0);
+                else
+                    solver.SetBounds(allocations[i], 0, 1);
             }
 
             int expectedRateOfReturn;
             solver.AddRow("expectedRateOfReturn", out expectedRateOfReturn);
-            solver.SetBounds(expectedRateOfReturn, data.MinimumRateOfReturn, double.PositiveInfinity);
+            solver.SetBounds(expectedRateOfReturn, data.MinimumReturn, double.PositiveInfinity);
 
             int unity;
             solver.AddRow("Investments sum to one", out unity);
@@ -31,7 +34,7 @@ namespace PortfolioQuadraticOptimization
 
             for (int i = 0; i < assetCount; i++)
             {
-                solver.SetCoefficient(expectedRateOfReturn, allocations[i], data.Assets[i].MeanRateOfReturn);
+                solver.SetCoefficient(expectedRateOfReturn, allocations[i], data.Stocks[i].MeanReturnRate);
                 solver.SetCoefficient(unity, allocations[i], 1);
             }
 
@@ -41,7 +44,7 @@ namespace PortfolioQuadraticOptimization
             {
                 for (int j = 0; j < assetCount; j++)
                 {
-                    solver.SetCoefficient(variance, data.Assets[i].Covariances[data.Assets[j].Symbol], allocations[i], allocations[j]);
+                    solver.SetCoefficient(variance, data.Stocks[i].Covariances[data.Stocks[j].Symbol], allocations[i], allocations[j]);
                 }
             }
 
@@ -68,7 +71,7 @@ namespace PortfolioQuadraticOptimization
             {
                 assetResults.Add(new AssetResult
                 {
-                    Symbol = data.Assets[i].Symbol,
+                    Symbol = data.Stocks[i].Symbol,
                     Allocation = (double)solver.GetValue(allocations[i])
                 });
             }
@@ -77,8 +80,8 @@ namespace PortfolioQuadraticOptimization
             {
                 Optimal = optimal,
                 Feasible = feasible,
-                ExpectedRateOfReturn = expectedRateOfReturn,
-                AssetResults = assetResults
+                ExpectedReturn = (double)solver.GetValue(expectedRateOfReturn),
+                Results = assetResults
             };
 
             return result;

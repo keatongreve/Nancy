@@ -9,25 +9,27 @@ namespace PortfolioQuadraticOptimization.DataContracts
     [DataContract]
     public class OptimizationData
     {
-        public double MinimumRateOfReturn { get; set; }
-        public List<AssetData> Assets { get; set; }
+        [DataMember]
+        public double MinimumReturn { get; set; }
+        [DataMember]
+        public List<AssetData> Stocks { get; set; }
 
         public OptimizationData()
         {
-            MinimumRateOfReturn = 0;
-            Assets = new List<AssetData>();
+            MinimumReturn = 0;
+            Stocks = new List<AssetData>();
         }
 
         public OptimizationData(int minimumRateOfReturn)
         {
-            MinimumRateOfReturn = minimumRateOfReturn;
-            Assets = new List<AssetData>();
+            MinimumReturn = minimumRateOfReturn;
+            Stocks = new List<AssetData>();
         }
 
         public OptimizationData(int minimumRateOfReturn, List<AssetData> assets)
         {
-            MinimumRateOfReturn = minimumRateOfReturn;
-            Assets = assets;
+            MinimumReturn = minimumRateOfReturn;
+            Stocks = assets;
         }
     }
 }
