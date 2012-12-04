@@ -27,6 +27,8 @@
             $("#portfolioStatistics").show();
         }
 
+        $("#Historical").attr('checked', 'checked');
+
         $("#stats").bind("click", function ()
         {
             var weights = [];
@@ -54,9 +56,35 @@
             }
         });
 
+        $("#CAPM").click(function() {
+            $("label").css('visibility', 'visible');
+            marker = $('<span />').insertBefore('#MRP');
+            $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+            marker = $('<span />').insertBefore('#RiskFreeRate');
+            $('#RiskFreeRate').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+        });
+
+        $("#Historical").click(function() {
+            $("label").css('visibility', 'hidden');
+            marker = $('<span />').insertBefore('#RiskFreeRate');
+            $('#RiskFreeRate').detach().attr('type', 'hidden').insertAfter(marker).focus();
+            marker.remove();
+            marker = $('<span />').insertBefore('#MRP');
+            $('#MRP').detach().attr('type', 'hidden').insertAfter(marker).focus();
+            marker.remove();
+        });
+
         $(".formAnchor").click(function() {
-            var input = $('<input>').attr({type: 'hidden', name: 'meanRateMethod', value: $("[name='meanRateMethod']:checked").val()});
-            $(this).parent('form').append($(input));
+            var meanRateMethod = $('<input>').attr({type: 'hidden', name: 'meanRateMethod', value: $("[name='meanRateMethod']:checked").val()});
+            var expectedRateMethod = $('<input>').attr({type: 'hidden', name: 'expectedRateMethod', value: $("[name='expectedRateMethod']:checked").val()});
+            var riskFreeRate = $('<input>').attr({type: 'hidden', name: 'riskFreeRate', value: $("#RiskFreeRate").val()});
+            var MRP = $('<input>').attr({type: 'hidden', name: 'MRP', value: $("#MRP").val()});
+            $(this).parent('form').append($(meanRateMethod));
+            $(this).parent('form').append($(expectedRateMethod));
+            $(this).parent('form').append($(riskFreeRate));
+            $(this).parent('form').append($(MRP));
             $(this).parent('form').submit();
         });
     });
@@ -66,9 +94,21 @@
     <img src="~/Images/ajax-loader.gif" /></div>
 <h2>My Assets</h2>
 
-<h3>Mean Rate of Return Calculation Method:</h3>
-<input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>Simple<br />
-<input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>Logarithmic<br />
+@if (Model.Count() > 0)
+{
+    <h3>Mean Rate of Return Calculation Method:</h3>
+    <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+    <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+
+    <h3>Expected Annualized Rates of Return Calculation Method:</h3>
+    <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+    <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+    <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
+    <input type="hidden" id="RiskFreeRate" class="input" name="expectedRateMethod" style="width:30px; margin-right:50px;"/>
+    <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
+    <input type="hidden" id="MRP" class="input" name="expectedRateMethod" style="width:30px;"/>
+
+}
 
 <table>
     <tr>
