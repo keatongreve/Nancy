@@ -34,7 +34,16 @@
             $("#portfolioStatistics").show();
         }
 
-        $("#Historical").attr('checked', 'checked');
+        if ($("#CAPM").attr('checked') == "checked")
+        {
+            $("label").css('visibility', 'visible');
+            marker = $('<span />').insertBefore('#MRP');
+            $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+            marker = $('<span />').insertBefore('#RiskFreeRate');
+            $('#RiskFreeRate').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+        }
 
         $("#stats").bind("click", function ()
         {
@@ -106,16 +115,33 @@
     using (Ajax.BeginForm("CalculateAssetStats", new { id = Model.ToList().First().PortfolioID, date = Model.ToList().First().Portfolio.DefaultStartDate.ToString() }, ajaxOptions_AssetStats))
     { 
         <h3>Mean Rate of Return Calculation Method:</h3>
-        <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
-        <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+        if (Model.First().Portfolio.isSimple)
+        {
+            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+        }
+        else
+        {
+            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+        }
 
         <h3>Expected Annualized Rates of Return Calculation Method:</h3>
-        <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-        <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+        if (Model.First().Portfolio.isCAPM)
+        {
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+        }
+        else
+        {
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+        }
+        
         <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
-        <input type="hidden" id="RiskFreeRate" class="input" name="expectedRateMethod" style="width:30px; margin-right:50px;"/>
+        <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
         <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
-        <input type="hidden" id="MRP" class="input" name="expectedRateMethod" style="width:30px;"/>
+        <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
     
         <input type="submit" value="Calculate Asset Statistics" />
     }

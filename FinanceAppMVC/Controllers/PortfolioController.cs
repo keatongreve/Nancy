@@ -137,15 +137,21 @@ namespace FinanceAppMVC.Controllers
             else
                 expectedRateMethodIsCAPM = false;
 
+            portfolio.isSimple = meanRateMethodIsSimple;
+            portfolio.isCAPM = expectedRateMethodIsCAPM;
+
             if (riskFreeRate == null || MRP == null)
             {
                 riskFreeRate = "0";
                 MRP = "0";
             }
 
+            portfolio.riskFreeRate = Double.Parse(riskFreeRate);
+            portfolio.MRP = Double.Parse(MRP);
+
             foreach (Asset asset in assets)
             {
-                calculateAssetStats(asset, startDate, meanRateMethodIsSimple, expectedRateMethodIsCAPM, Double.Parse(riskFreeRate), Double.Parse(MRP));
+                calculateAssetStats(asset, startDate, meanRateMethodIsSimple, expectedRateMethodIsCAPM, portfolio.riskFreeRate, portfolio.MRP);
             }
             portfolio.statsCalculated = true;
             db.SaveChanges();
