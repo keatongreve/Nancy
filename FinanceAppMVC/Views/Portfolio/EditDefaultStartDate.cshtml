@@ -12,8 +12,16 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#DefaultStartDate").datepicker({ dateFormat: "yy-mm-dd" });
-        $("#DefaultStartDate").val("@Model.DefaultStartDate.ToString("yyyy-MM-dd")");
+        $("#DefaultStartDate").datepicker({
+            dateFormat: "mm-dd-yy",
+            changeMonth: true,
+            changeYear: true,
+            showAnim: "slideDown",
+            minDate: new Date(2000, 0, 1),
+            maxDate: 0,
+            yearRange: "-20:+0",
+        });
+        $("#DefaultStartDate").val("@Model.DefaultStartDate.ToString("MM-dd-yyyy")");
     });
 
     function EditDateSuccessCallback(data) {
