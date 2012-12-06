@@ -122,7 +122,7 @@
                 <button type="button" name="expectedRateMethodRadio" id="Historical" value="Historical" class="btn btn-primary active" style="margin-top:5px;">Historical</button>
                 <button type="button" name="expectedRateMethodRadio" id="CAPM" value="CAPM" class="btn btn-primary" style="margin-top:5px;">CAPM</button>
             </div>
-            <div style="margin-top:5px">
+            <div style="margin-top:10px">
                 <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
                 <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px; margin-top:10px" value="@Model.First().Portfolio.riskFreeRate" />
                 <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
@@ -303,5 +303,24 @@
 
 </table>
     </div>
-=======
-    </tr>*@
+<div class="offset1" style="display:inline-block">
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="View Portfolio Statistics" style="font-size:large" />
+        </form>
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("RiskAnalysis", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="View Risk Analysis" style="font-size:large"/>
+        </form>
+    </div>
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("Optimize", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="Optimize Portfolio" style="font-size:large" />
+        </form>
+    </div>
+</div>
+    
+}
