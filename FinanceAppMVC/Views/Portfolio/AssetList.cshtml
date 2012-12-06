@@ -190,7 +190,7 @@
             });
         </script>
 
-        <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block; margin-right:auto; margin-left:200px; margin-top:90px;" />
+        <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block; margin-right:auto; margin-left:169px; margin-top:90px;" />
         <div id="loader2" style="display:none;">
             <img src="~/Images/ajax-loader.gif" />
         </div>  
@@ -276,32 +276,7 @@
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
     <h3 id="myModalLabel">Success!</h3>
   </div>
-
-@*<td>
-    <form action="@Url.Action("Asset", "Portfolio")">
-        <input type="hidden" name="id" value="@item.ID" />
-        <a href="javascript:void(0)" class="formAnchor">Details</a>
-    </form>
-</td> 
-
-    <tr class="nolink">
-        <td colspan="3">
-            <form action="@Url.Action("RiskAnalysis", "Portfolio")">
-                    <input type="hidden" name="id" value="@portfolioID" />
-                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Risk Analysis</a>
-                </form>
-        </td>
-        <td id="portfolioStatistics" style="display:none">
-            <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
-                    <input type="hidden" name="id" value="@portfolioID" />
-                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Portfolio Statistics</a>
-                </form>
-        </td>
-<<<<<<< HEAD
-    </tr>
     }
-
-</table>
     </div>
 <div class="offset1" style="display:inline-block">
     <div style="float:left;margin-right:20px;">
@@ -309,6 +284,7 @@
             <input type="hidden" name="id" value="@portfolioID" />
             <input type="submit" class="btn btn-info" value="View Portfolio Statistics" style="font-size:large" />
         </form>
+        </div>
     <div style="float:left;margin-right:20px;">
         <form action="@Url.Action("RiskAnalysis", "Portfolio")">
             <input type="hidden" name="id" value="@portfolioID" />
@@ -322,5 +298,3 @@
         </form>
     </div>
 </div>
-    
-}
