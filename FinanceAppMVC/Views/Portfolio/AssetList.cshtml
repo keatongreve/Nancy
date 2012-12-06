@@ -18,7 +18,8 @@
     {
         UpdateTargetId = "CalculateAssetStats",
         HttpMethod = "POST",
-        LoadingElementId = "loader"
+        LoadingElementId = "loader",
+        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable');"
     };
     int i = 0;
 }
@@ -117,13 +118,13 @@
         <h3>Mean Rate of Return Calculation Method:</h3>
         if (Model.First().Portfolio.isSimple)
         {
-            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
             <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
         }
         else
         {
-            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
             <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
         }
 
         <h3>Expected Annualized Rates of Return Calculation Method:</h3>
@@ -143,14 +144,14 @@
         <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
         <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
     
-        <input type="submit" value="Calculate Asset Statistics" />
+        <input type="submit" value="Calculate Asset Statistics" style="display:block;" />
     }
 
 
 
 }
-
-<table>
+<div id="TableContainer">
+<table id="AssetTable">
     <tr>
         <th>
             @Html.DisplayNameFor(model => model.Symbol)
@@ -217,3 +218,4 @@
     }
 
 </table>
+    </div>

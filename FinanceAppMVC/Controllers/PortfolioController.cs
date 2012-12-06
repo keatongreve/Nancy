@@ -204,6 +204,9 @@ namespace FinanceAppMVC.Controllers
             if (asset != null)
             {
                 portfolioID = asset.PortfolioID;
+                var portfolio = db.Portfolios.Find(portfolioID);
+                if (portfolio.Assets.Count == 1)
+                    portfolio.statsCalculated = false;
                 db.Assets.Remove(asset);
                 db.SaveChanges();
             }
