@@ -20,8 +20,8 @@
     {
         UpdateTargetId = "CalculateAssetStats",
         HttpMethod = "POST",
-        LoadingElementId = "loader",
-        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable');"
+        LoadingElementId = "loader2",
+        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable');$('table').rowlink();"
     };
     int i = 0;
 }
@@ -76,6 +76,8 @@
         });
 
         $("#CAPM").click(function() {
+            $(this).addClass("active");
+            $("#Historical").removeClass("active");
             $("label").css('visibility', 'visible');
             marker = $('<span />').insertBefore('#MRP');
             $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
@@ -86,6 +88,8 @@
         });
 
         $("#Historical").click(function() {
+            $(this).addClass("active");
+            $("#CAPM").removeClass("active");
             $("label").css('visibility', 'hidden');
             marker = $('<span />').insertBefore('#RiskFreeRate');
             $('#RiskFreeRate').detach().attr('type', 'hidden').insertAfter(marker).focus();
@@ -114,35 +118,88 @@
     using (Ajax.BeginForm("CalculateAssetStats", new { id = Model.ToList().First().PortfolioID, date = Model.ToList().First().Portfolio.DefaultStartDate.ToString() }, ajaxOptions_AssetStats))
     { 
         <h3>Mean Rate of Return Calculation Method:</h3>
+    
+        <div class="btn-group container" data-toggle="buttons-radio">            
+            <button type="button" name="meanRateMethodRadio" value="Logarithmic" class="btn btn-primary active">Logarithmic</button>
+            <button type="button" name="meanRateMethodRadio" value="Simple" class="btn btn-primary">Simple</button>
+        </div>
+        <input type="hidden" name="meanRateMethod" value="@(Model.First().Portfolio.isSimple ? "Simple" : "Logarithmic")" />
+    
         if (Model.First().Portfolio.isSimple)
         {
-            <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
-            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <script type="text/javascript">
+                $('button[name="meanRateMethodRadio"]:first').removeClass("active");
+                $('button[name="meanRateMethodRadio"]:last').addClass("active");
+            </script>
         }
         else
         {
-            <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
-            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <script type="text/javascript">
+                $('button[name="meanRateMethodRadio"]:first').addClass("active");
+                $('button[name="meanRateMethodRadio"]:last').removeClass("active");
+            </script>
         }
+        <script type="text/javascript">
+            $('button[name="meanRateMethodRadio"]:first').click(function() {
+                $('button[name="meanRateMethodRadio"]:first').addClass("active");
+                $('button[name="meanRateMethodRadio"]:last').removeClass("active");
+                $('input[name="meanRateMethod"]').val($(this).val());
+            });
+            $('button[name="meanRateMethodRadio"]:last').click(function() {
+                $('button[name="meanRateMethodRadio"]:first').removeClass("active");
+                $('button[name="meanRateMethodRadio"]:last').addClass("active");
+                $('input[name="meanRateMethod"]').val($(this).val());
+            });
+        </script>
 
         <h3>Expected Annualized Rates of Return Calculation Method:</h3>
+            
+        <div class="container">
+            <div class="btn-group" data-toggle="buttons-radio">            
+                <button type="button" name="expectedRateMethodRadio" id="Historical" value="Historical" class="btn btn-primary active">Historical</button>
+                <button type="button" name="expectedRateMethodRadio" id="CAPM" value="CAPM" class="btn btn-primary">CAPM</button>
+            </div>
+            <div style="margin-top:5px">
+                <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
+                <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
+                <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
+                <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
+            </div>
+        </div>
+        
+        <input type="hidden" name="expectedRateMethod" value="@(Model.First().Portfolio.isCAPM ? "CAPM" : "Historical")" />
+        
         if (Model.First().Portfolio.isCAPM)
         {
-            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+            <script type="text/javascript">
+                $('#CAPM').addClass("active");
+                $('#Historical').removeClass("active"); 
+                $("label").css('visibility', 'visible');
+                marker = $('<span />').insertBefore('#MRP');
+                $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
+                marker.remove();
+                marker = $('<span />').insertBefore('#RiskFreeRate');
+                $('#RiskFreeRate').detach().attr('type', 'text').insertAfter(marker).focus();
+                marker.remove();
+            </script>
         }
         else
         {
-            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+            <script type="text/javascript">
+                $('#CAPM').removeClass("active");
+                $('#Historical').addClass("active");
+            </script>
         }
+        <script type="text/javascript">
+            $('button[name="expectedRateMethodRadio"]').click(function() {
+                $('input[name="expectedRateMethod"]').val($(this).val());
+            });
+        </script>
         
-        <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
-        <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
-        <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
-        <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
-    
         <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block;" />
+        <div id="loader2" style="display:none;">
+            <img src="~/Images/ajax-loader.gif" />
+        </div>  
     }
     
     
@@ -155,6 +212,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Symbol)
             </th>
+            <th></th>
             <th>Weight</th>
             <th></th>
         </tr>
@@ -164,9 +222,9 @@
     {
         <tr>
             <td class="rowlink" style="width:100%">
-                <h4>@Html.ActionLink(item.Symbol, "Details", new { id=item.ID })</h4>
+                <h4>@Html.ActionLink(item.Symbol, "Details", new { id = item.ID })</h4>
             </td>   
-            <td class="rowlink">
+            <td class="nolink">
                 @if (item.Portfolio.statsCalculated)
                 {
                     <form action="@Url.Action("Asset", "Portfolio")">
@@ -181,14 +239,15 @@
                 </div>
             </td>            
             <td class="nolink" style="text-align:right">
-                @Ajax.RawActionLink("<i class=\"icon-trash icon-white\"></i>", "DeleteAsset", new { id=item.ID }, ajaxOptions, new { @class = "btn btn-danger" })
+                @Ajax.RawActionLink("<i class=\"icon-trash icon-white\"></i>", "DeleteAsset", new { id = item.ID }, ajaxOptions, new { @class = "btn btn-danger" })
             </td>
         </tr>
-        i++;
+                i++;
     }
     </tbody>
     <tfoot>
         <tr class="nolink">
+            <td></td>
             <td></td>
             <td>
                 <button id="stats" class="btn btn-primary">Save</button>
@@ -199,8 +258,9 @@
                 </div>
             </td>
         </tr>
+
       @{
-          i++;
+    i++;
       }
     </tfoot>
 </table>
