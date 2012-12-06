@@ -6,7 +6,7 @@
       UpdateTargetId = "AssetList",
       HttpMethod = "POST",
       LoadingElementId = "loader",
-      OnSuccess="$('#Symbol').val('')"
+      OnSuccess="$('table').rowlink()"
     };
 }
 
@@ -61,16 +61,21 @@
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>Asset</legend>
+        <legend class="hide">Asset</legend>
 
-        <div class="editor-field">            
-            @Html.EditorFor(model => model.Symbol, new { id = "Symbol" })
-            @Html.ValidationMessageFor(model => model.Symbol)
+        <div class="container">
+            <div class="input-append" style="float:left">            
+                @Html.EditorFor(model => model.Symbol)
+                @Html.ValidationMessageFor(model => model.Symbol)
+                <button id="add_asset" class="btn btn-success" type="submit">
+                <i class="icon-plus icon-white"></i>
+                </button>
+            </div>
+            <div id="loader" style="display:none;">
+                <img src="~/Images/ajax-loader.gif" />
+            </div>            
         </div>
 
         @Html.HiddenFor(model => model.PortfolioID)
-
-        <input id="add_asset" type="submit" value="Add Asset" />
-
     </fieldset>
 }

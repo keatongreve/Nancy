@@ -6,17 +6,26 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#DefaultStartDate").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#DefaultStartDate").datepicker({
+            dateFormat: "mm-dd-yy",
+            changeMonth: true,
+            changeYear: true,
+            showAnim: "slideDown",
+            minDate: new Date(2000, 0, 1),
+            maxDate: 0,
+            yearRange: "-20:+0",
+        });
+        $("#DefaultStartDate").datepicker("setDate", new Date(2000, 0, 1));
     });
 </script>
 
-<h2>Create</h2>
+<h2>Create New Portfolio</h2>
 
 @using (Html.BeginForm()) {
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>Portfolio</legend>
+        <legend class="hide">Portfolio</legend>
 
         <div>
             @Html.ValidationMessageFor(model => model.PortfolioName)
@@ -30,7 +39,7 @@
             @Html.EditorFor(model => model.DefaultStartDate)
         </div>
         
-        <input type="submit" value="Create" />
+        <input type="submit" class="btn btn-primary" value="Create" />
 
     </fieldset>
 }

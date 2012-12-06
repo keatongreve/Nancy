@@ -12,7 +12,8 @@ namespace FinanceAppMVC
                 "~/Scripts/jquery-{version}.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
-                "~/Scripts/jquery-ui-{version}.js"));
+                "~/Scripts/jquery-ui-{version}.js",
+                "~/Scripts/jquery.color.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
                 "~/Scripts/jquery.unobtrusive*",
@@ -22,6 +23,11 @@ namespace FinanceAppMVC
             // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
             bundles.Add(new ScriptBundle("~/bundles/modernizr").Include(
                 "~/Scripts/modernizr-*"));
+
+            bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
+                "~/Scripts/bootstrap.min.js",
+                "~/Scripts/bootstrap-inputmask.js",
+                "~/Scripts/bootstrap-rowlink.js"));
 
             bundles.Add(new StyleBundle("~/Content/css").Include("~/Content/site.css"));
 
