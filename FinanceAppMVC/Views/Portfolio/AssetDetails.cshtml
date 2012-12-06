@@ -8,8 +8,6 @@
 <script src="/Scripts/highcharts.js" type="text/javascript"></script>
 <script type="text/javascript">
     var chart1; // globally available
-    var chart2;
-    var chart3;
     $(document).ready(function () {
         chart1 = new Highcharts.Chart({
             chart: {
@@ -80,152 +78,6 @@
                     ]
                 }]
             });
-        chart2 = new Highcharts.Chart({
-            chart: {
-                renderTo: 'simpleReturnContainer',
-                zoomType: 'x',
-                spacingRight: 20
-            },
-            title: {
-                text: '@Model.Symbol Daily Rates of Return (Simple)'
-            },
-            subtitle: {
-                text: 'Click and drag in the plot area to zoom in'
-            },
-            tooltip: {
-                shared: true,
-                formatter: function() {
-                    return ''+
-                    Highcharts.dateFormat("%A %B %e, %Y", this.x) +': '+ Highcharts.numberFormat(this.y, 2) +'%';
-                }
-            },
-            legend: {
-                enabled: false
-            },
-            xAxis: {
-                maxZoom: 24*3600*1000*5,
-                type: 'datetime'
-            },
-            yAxis: {
-                title: {
-                    text: 'Rate of Return (%)'
-                },
-                startOnTick: false,
-                showFirstLabel: false
-            },
-            plotOptions: {
-                area: {
-                    fillColor: {
-                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
-                        stops: [
-                            [0, Highcharts.getOptions().colors[0]],
-                            [1, 'rgba(2,0,0,0)']
-                        ]
-                    },
-                    lineWidth: 1,
-                    marker: {
-                        enabled: false,
-                        states: {
-                            hover: {
-                                enabled: true,
-                                radius: 5
-                            }
-                        }
-                    },
-                    shadow: false,
-                    states: {
-                        hover: {
-                            lineWidth: 1
-                        }
-                    }
-                }
-            },
-            series: [{
-                type: 'area',
-                pointStart: Date.UTC(@StartDate.Year, @(StartDate.Month - 1), @StartDate.Day),
-                pointInterval: 24*3600*1000,
-                name: '@Model.Symbol',
-                    data: [
-                        @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
-                        {
-                            @String.Format("[Date.UTC({0}, {1}, {2}), {3}],\n", p.Date.Year, p.Date.Month - 1, p.Date.Day, 100 * p.SimpleRateOfReturn)
-                        }
-                    ]
-            }]
-        });
-        chart3 = new Highcharts.Chart({
-            chart: {
-                renderTo: 'logReturnContainer',
-                zoomType: 'x',
-                spacingRight: 20
-            },
-            title: {
-                text: '@Model.Symbol Daily Rates of Return (Logarithmic)'
-            },
-            subtitle: {
-                text: 'Click and drag in the plot area to zoom in'
-            },
-            tooltip: {
-                shared: true,
-                formatter: function() {
-                    return ''+
-                    Highcharts.dateFormat("%A %B %e, %Y", this.x) +': '+ Highcharts.numberFormat(this.y, 2) +'%';
-                }
-            },
-            legend: {
-                enabled: false
-            },
-            xAxis: {
-                maxZoom: 24*3600*1000*5,
-                type: 'datetime'
-            },
-            yAxis: {
-                title: {
-                    text: 'Rate of Return (%)'
-                },
-                startOnTick: false,
-                showFirstLabel: false
-            },
-            plotOptions: {
-                area: {
-                    fillColor: {
-                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
-                        stops: [
-                            [0, Highcharts.getOptions().colors[0]],
-                            [1, 'rgba(2,0,0,0)']
-                        ]
-                    },
-                    lineWidth: 1,
-                    marker: {
-                        enabled: false,
-                        states: {
-                            hover: {
-                                enabled: true,
-                                radius: 5
-                            }
-                        }
-                    },
-                    shadow: false,
-                    states: {
-                        hover: {
-                            lineWidth: 1
-                        }
-                    }
-                }
-            },
-            series: [{
-                type: 'area',
-                pointStart: Date.UTC(@StartDate.Year, @(StartDate.Month - 1), @StartDate.Day),
-                pointInterval: 24*3600*1000,
-                name: '@Model.Symbol',
-                    data: [
-                        @foreach (FinanceAppMVC.Models.AssetPrice p in Model.Prices)
-                        {
-                            @String.Format("[Date.UTC({0}, {1}, {2}), {3}],\n", p.Date.Year, p.Date.Month - 1, p.Date.Day, 100 * p.LogRateOfReturn)
-                        }
-                    ]
-            }]
-        });
     });
 </script>
 
@@ -272,5 +124,3 @@
 </table>
 
 <div id="quotesContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
-<div id="simpleReturnContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
-<div id="logReturnContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>

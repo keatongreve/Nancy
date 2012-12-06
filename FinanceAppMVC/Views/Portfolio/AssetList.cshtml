@@ -19,9 +19,9 @@
 
     var ajaxOptions_AssetStats = new AjaxOptions
     {
-        UpdateTargetId = "AssetList",        
+        UpdateTargetId = "CalculateAssetStats",        
         HttpMethod = "POST",
-        OnSuccess = "$('#calculatingModal').modal('hide');$('#buttonsContainer').css('visibility', 'visible')"
+        OnSuccess = "reset"
     };
     int i = 0;
 }
@@ -121,6 +121,11 @@
             $(anchor).parent('form').submit();
         }
     });
+
+    function reset() {
+        $('#calculatingModal').modal('hide');
+        $('#buttonsContainer').css('visibility', 'visible');
+    }
 </script>
 
 @if (Model.Count() > 0)
@@ -268,7 +273,7 @@
 }
 
 <!-- Modal -->
-<div id="calculatingModal" class="modal hide fade">
+<div id="calculatingModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="calculatingModalLabel" aria-hidden="true">
   <div class="modal-header">
     <h3 id="calculatingModalLabel" style="display:inline;">Calculating...</h3>
       <img src="~/Images/ajax-loader.gif" style="margin-left:25px;" />
