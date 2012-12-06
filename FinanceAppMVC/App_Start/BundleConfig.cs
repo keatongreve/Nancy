@@ -24,8 +24,8 @@ namespace FinanceAppMVC
             bundles.Add(new ScriptBundle("~/bundles/modernizr").Include(
                 "~/Scripts/modernizr-*"));
 
-            bundles.Add(new ScriptBundle("~/Scripts/bootstrap").Include(
-                "~/Scripts/bootstrap.min.js",
+            bundles.Add(new ScriptBundle("~/bundles/bootstrap").Include(
+                "~/Scripts/bootstrap.js",
                 "~/Scripts/bootstrap-inputmask.js",
                 "~/Scripts/bootstrap-rowlink.js"));
 

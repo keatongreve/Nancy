@@ -76,8 +76,6 @@
         });
 
         $("#CAPM").click(function() {
-            $(this).addClass("active");
-            $("#Historical").removeClass("active");
             $("label").css('visibility', 'visible');
             marker = $('<span />').insertBefore('#MRP');
             $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
@@ -88,8 +86,6 @@
         });
 
         $("#Historical").click(function() {
-            $(this).addClass("active");
-            $("#CAPM").removeClass("active");
             $("label").css('visibility', 'hidden');
             marker = $('<span />').insertBefore('#RiskFreeRate');
             $('#RiskFreeRate').detach().attr('type', 'hidden').insertAfter(marker).focus();
@@ -141,13 +137,9 @@
         }
         <script type="text/javascript">
             $('button[name="meanRateMethodRadio"]:first').click(function() {
-                $('button[name="meanRateMethodRadio"]:first').addClass("active");
-                $('button[name="meanRateMethodRadio"]:last').removeClass("active");
                 $('input[name="meanRateMethod"]').val($(this).val());
             });
             $('button[name="meanRateMethodRadio"]:last').click(function() {
-                $('button[name="meanRateMethodRadio"]:first').removeClass("active");
-                $('button[name="meanRateMethodRadio"]:last').addClass("active");
                 $('input[name="meanRateMethod"]').val($(this).val());
             });
         </script>
@@ -200,6 +192,10 @@
         <div id="loader2" style="display:none;">
             <img src="~/Images/ajax-loader.gif" />
         </div>  
+    
+        <script type="text/javascript">
+            $(".btn-group button").button();
+        </script>
     }
     
     
