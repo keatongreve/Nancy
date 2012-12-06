@@ -413,6 +413,7 @@ namespace FinanceAppMVC.Controllers
         public ActionResult Optimize(int id, int minimumRateOfReturn = 0, string date = "")
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
+            List<Double> variances = new List<double>();
 
             DateTime startDate;
             if (date == "")
@@ -432,14 +433,12 @@ namespace FinanceAppMVC.Controllers
             {
                 var aPrices = a.Prices.Where(x => x.Date >= startDate).ToList();
 
-                a.AnnualizedMeanRate = calculateDailyMeanRate(aPrices, true) * 252;
-
                 var covariances = new Dictionary<string, double>();
                 foreach (Asset a2 in portfolio.Assets)
                 {
                     var a2Prices = a2.Prices.Where(x => x.Date >= startDate).ToList();
-                    var aExpectedVal = calculateExpectedValue(aPrices);
-                    var a2ExpecteVal = calculateExpectedValue(a2Prices);
+                    var aExpectedVal = a.DailyMeanRate;
+                    var a2ExpecteVal = a2.DailyMeanRate;
                     covariances.Add(a2.Symbol, calculateCovariance(aPrices, aExpectedVal, a2Prices, a2ExpecteVal, true));
                 }
 
@@ -449,6 +448,7 @@ namespace FinanceAppMVC.Controllers
                     MeanReturnRate = a.AnnualizedMeanRate,
                     Covariances = covariances
                 });
+                variances.Add(a.AnnualizedVariance);
             }
 
             inputData.Stocks = assetData;
@@ -513,6 +513,16 @@ namespace FinanceAppMVC.Controllers
             {
                 efficientFrontier = new OptimizationResult[0];
 			}
+
+            foreach (var solution in efficientFrontier)
+            {
+                double portfolioVariance = 0;
+                for (int i = 0; i < solution.Results.Count; i++)
+                {
+                    portfolioVariance += variances.ElementAt(i) * solution.Results.ElementAt(i).Allocation;
+                }
+                solution.StandardDeviation = Math.Sqrt(portfolioVariance);
+            }
 
             ViewBag.Results = result.Results.ToDictionary(r => r.Symbol, r => r.Allocation);
             ViewBag.Feasible = result.Feasible;
