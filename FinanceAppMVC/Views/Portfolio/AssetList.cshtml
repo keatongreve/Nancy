@@ -1,10 +1,12 @@
 ﻿@using FinanceAppMVC.Extensions
 @model IEnumerable<FinanceAppMVC.Models.Asset>
 @{
+    bool statsCalculated = false;
     int portfolioID = 0;
     if (Model.Count() > 0)
     {
         portfolioID = Model.First().PortfolioID;
+        statsCalculated = Model.First().Portfolio.statsCalculated;
     }
 
     var ajaxOptions = new AjaxOptions
@@ -20,7 +22,7 @@
     {
         UpdateTargetId = "CalculateAssetStats",
         HttpMethod = "POST",
-        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable'); $('#calculatingModal').modal('hide');"
+        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable'); $('#calculatingModal').modal('hide'); $('#buttonsContainer').css('visibility', 'visible')"
     };
     int i = 0;
 }
@@ -35,6 +37,11 @@
         });
         if (Math.abs(1 - weightSum) <= .001) {
             $("#portfolioStatistics").show();
+        }
+
+        if ("@statsCalculated" == "True")
+        {
+            $("#buttonsContainer").css('visibility', 'visible');
         }
 
         if ($("#CAPM").attr('checked') == "checked")
@@ -66,7 +73,7 @@
                     type: 'POST',
                     data: { portfolioId: @portfolioID, weightList: JSON.stringify(weights) },
                     success: function(response) {
-                        alert(response.Message);
+                        $('#savingModal').modal('hide');
                         if (response.StatusCode == 0) {
                             $("#portfolioStatistics").show("slow");
                         }
@@ -166,7 +173,7 @@
             <td></td>
             <td></td>
             <td>
-                <button id="stats" class="btn btn-primary">Save</button>
+                <button id="stats" class="btn btn-primary" onclick="$('#savingModal').modal('show');">Save</button>
             </td>
             <td>
                 <div id="asset-delete-loader" style="display: none">
@@ -211,9 +218,6 @@
         <div class="span3 offset9" style="float:left;margin-left:20px;">
             <h4 style="display:inline;">&nbsp;</h4>
             <input type="submit" class="btn btn-success" value="Calculate Asset Statistics" style="font-size:large;margin-top:5px" onclick="$('#calculatingModal').modal('show')"/>
-            <div id="loader2" style="display:none;">
-                <img src="~/Images/ajax-loader.gif" />
-            </div>  
         </div>
     
         if (Model.First().Portfolio.isCAPM)
@@ -272,14 +276,13 @@
       <img src="~/Images/ajax-loader.gif" style="margin-left:25px;" />
   </div>
 </div>
-<div id="successModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="savingModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="myModalLabel">Success!</h3>
+    <h3 id="myModalLabel" style="display:inline;">Saving...</h3>
+    <img src="~/Images/ajax-loader.gif" style="margin-left:25px;" />
   </div>
-    }
     </div>
-<div class="offset2" style="display:inline-block;margin-top:10px">
+<div class="offset2" id="buttonsContainer" style="display:inline-block;margin-top:10px;visibility:hidden;">
     <div style="float:left;margin-right:20px;">
         <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
             <input type="hidden" name="id" value="@portfolioID" />
