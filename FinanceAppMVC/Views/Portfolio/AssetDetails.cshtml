@@ -11,8 +11,6 @@
     var chart2;
     var chart3;
     $(document).ready(function () {
-        $("#date").datepicker({ dateFormat: "yy-mm-dd" });
-        $("#date").val("@StartDate.ToString("yyyy-MM-dd")");
         chart1 = new Highcharts.Chart({
             chart: {
                 renderTo: 'quotesContainer',
@@ -232,62 +230,47 @@
 </script>
 
 <h2>@Model.Symbol</h2>
-
-@using (Html.BeginForm("Asset", "Portfolio", new { id = @Model.ID }, FormMethod.Get))
-{
-    <input type="hidden" name="meanRateMethod" value="@Request["meanRateMethod"]" />
-    <input type="hidden" name="expectedRateMethod" value="@Request["expectedRateMethod"]" />
-    <input type="hidden" name="riskFreeRate" value="@Request["riskFreeRate"]" />
-    <input type="hidden" name="MRP" value="@Request["MRP"]" />
-    <input type="hidden" name="dateIsModified" value="true" />
-    <div class="editor-field">
-        @Html.Label("Pick starting date: ")
-        @Html.TextBox("date", null, new { id = "date" })
-    </div>
-    <input type="submit" value="See prices" />
     
-    <table border="1" width="100%">
-        <tr>
-            <th>Daily Mean Rate of Return</th>
-            <th>Annualized Mean Rate of Return</th>
-            <th>Daily Variance</th>
-            <th>Annualized Variance</th>
-            <th>Daily Standard Deviation</th>
-            <th>Annualized Standard Deviation</th>
-            <th>Historical Correlation</th>
-            <th>Sharpe Ratio</th>
-            <th>Beta</th>
-        </tr>
-        <tr>
-            @{
-    if (Model.Prices.Count < 252)
+<table class="table table-striped" width="100%">
+    <tr>
+        <th>Daily Mean Rate of Return</th>
+        <th>Annualized Mean Rate of Return</th>
+        <th>Daily Variance</th>
+        <th>Annualized Variance</th>
+        <th>Daily Standard Deviation</th>
+        <th>Annualized Standard Deviation</th>
+        <th>Historical Correlation</th>
+        <th>Sharpe Ratio</th>
+        <th>Beta</th>
+    </tr>
+    <tr>
+    @if (Model.Prices.Count < 252)
     {
-                    <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
-                    <td>N/A</td>
-                    <td>@String.Format("{0:N}", Model.DailyVariance)</td>
-                    <td>N/A</td>
-                    <td>@String.Format("{0:P}", Model.DailyStandardDeviation)</td>
-                    <td>N/A</td>
-                <td>@String.Format("{0:F4}", Model.HistoricalCorrelation)</td>
-                <td>@String.Format("{0:F4}", Model.SharpeRatio)</td>
-                <td>@String.Format("{0:F4}", Model.Beta)</td>
+        <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
+        <td>N/A</td>
+        <td>@String.Format("{0:N}", Model.DailyVariance)</td>
+        <td>N/A</td>
+        <td>@String.Format("{0:P}", Model.DailyStandardDeviation)</td>
+        <td>N/A</td>
+        <td>@String.Format("{0:F4}", Model.HistoricalCorrelation)</td>
+        <td>@String.Format("{0:F4}", Model.SharpeRatio)</td>
+        <td>@String.Format("{0:F4}", Model.Beta)</td>
     }
     else
     {
-                    <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
-                    <td>@String.Format("{0:P}", Model.AnnualizedMeanRate)</td>
-                    <td>@String.Format("{0:N}", Model.DailyVariance)</td>
-                    <td>@String.Format("{0:N}", Model.AnnualizedVariance)</td>
-                    <td>@String.Format("{0:P}", Model.DailyStandardDeviation)</td>
-                    <td>@String.Format("{0:P}", Model.AnnualizedStandardDeviation)</td>
-                <td>@String.Format("{0:N}", Model.HistoricalCorrelation)</td>
-                <td>@String.Format("{0:N}", Model.SharpeRatio)</td>
-                <td>@String.Format("{0:N}", Model.Beta)</td>
+        <td>@String.Format("{0:P}", Model.DailyMeanRate)</td>
+        <td>@String.Format("{0:P}", Model.AnnualizedMeanRate)</td>
+        <td>@String.Format("{0:N}", Model.DailyVariance)</td>
+        <td>@String.Format("{0:N}", Model.AnnualizedVariance)</td>
+        <td>@String.Format("{0:P}", Model.DailyStandardDeviation)</td>
+        <td>@String.Format("{0:P}", Model.AnnualizedStandardDeviation)</td>
+        <td>@String.Format("{0:N}", Model.HistoricalCorrelation)</td>
+        <td>@String.Format("{0:N}", Model.SharpeRatio)</td>
+        <td>@String.Format("{0:N}", Model.Beta)</td>
     }
-            }
-        </tr>
-    </table>
-}
+    </tr>
+</table>
+
 <div id="quotesContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
 <div id="simpleReturnContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
 <div id="logReturnContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>

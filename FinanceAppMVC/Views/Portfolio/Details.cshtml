@@ -6,12 +6,13 @@
 
 <h2>@Model.PortfolioName</h2>
 
-<div id="EditDefaultStartDate">
-    @Html.Action("EditDefaultStartDate", new { id = Model.ID })
-</div>
-
-<div id="AddAsset">
-    @Html.Action("AddAsset", new { portfolioID = Model.ID })
+<div class="container-fluid" style="padding: 0px 0px 0px 0px;">
+    <div id="AddAsset" class="span4" style="float:left;margin:0">
+        @Html.Action("AddAsset", new { portfolioID = Model.ID })
+    </div>    
+    <div id="EditDefaultStartDate" class="span4" style="float:right;margin:0">
+        @Html.Action("EditDefaultStartDate", new { id = Model.ID })
+    </div>    
 </div>
 
 <div id="AssetList">
