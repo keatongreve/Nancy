@@ -158,41 +158,9 @@ namespace FinanceAppMVC.Controllers
             return AssetList(id);
         }
 
-        public ActionResult Asset(int id, String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, String date = "", bool dateIsModified = false)
+        public ActionResult Asset(int id)
         {
             Asset asset = db.Assets.Include(a => a.Portfolio).Include(a => a.Prices).Where(a => a.ID == id).First();
-            DateTime startDate;
-
-            bool meanRateMethodIsSimple;
-
-            if (meanRateMethod.Equals("Simple"))
-                meanRateMethodIsSimple = true;
-            else
-                meanRateMethodIsSimple = false;
-
-            bool expectedRateMethodIsCAPM;
-
-            if (expectedRateMethod.Equals("CAPM"))
-                expectedRateMethodIsCAPM = true;
-            else
-                expectedRateMethodIsCAPM = false;
-
-            if (riskFreeRate.Equals("") || MRP.Equals(""))
-            {
-                riskFreeRate = "0";
-                MRP = "0";
-            }
-
-            if (date == "")
-                startDate = asset.Portfolio.DefaultStartDate;
-            else
-                startDate = DateTime.Parse(date);
-
-            if (dateIsModified)
-                calculateAssetStats(asset, startDate, meanRateMethodIsSimple, expectedRateMethodIsCAPM, Double.Parse(riskFreeRate), Double.Parse(MRP));
-
-            ViewBag.Date = startDate;
-
             return View("AssetDetails", asset);
         }
 

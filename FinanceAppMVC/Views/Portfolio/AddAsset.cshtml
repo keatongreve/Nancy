@@ -6,7 +6,8 @@
       UpdateTargetId = "AssetList",
       HttpMethod = "POST",
       LoadingElementId = "loader",
-      OnSuccess="$('#Symbol').val('');"
+      OnSuccess = "$('#Symbol').val('');$('#AssetTable').rowlink();",
+      OnBegin = "validateSymbol"
     };
 }
 
@@ -53,6 +54,16 @@
         }
 
     });
+
+    function validateSymbol() {
+        var symbolsList = $.map($("#AssetTable td.rowlink h4"), function (element) { return $(element).text() }).join(",");
+        var symbol = $("#Symbol").val();
+        if (symbolsList.indexOf(symbol) !== -1) {
+            alert("That asset has already been added to this portfolio.");
+            return false;
+        }
+    }
+
 </script>
    
 <h3>Add Assets to Portfolio</h3>
