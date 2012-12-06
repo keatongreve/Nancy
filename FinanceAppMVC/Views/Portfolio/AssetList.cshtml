@@ -21,11 +21,12 @@
         UpdateTargetId = "CalculateAssetStats",
         HttpMethod = "POST",
         LoadingElementId = "loader",
-        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable');"
+        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable'); $('#calculatingModal').modal('hide');"
     };
     int i = 0;
 }
 
+<script src="/Scripts/bootstrap.js" type="text/javascript"></script>
 <script type="text/javascript">
     $(document).ready(function() 
     {
@@ -113,36 +114,36 @@
 {
     using (Ajax.BeginForm("CalculateAssetStats", new { id = Model.ToList().First().PortfolioID, date = Model.ToList().First().Portfolio.DefaultStartDate.ToString() }, ajaxOptions_AssetStats))
     { 
-        <h3>Mean Rate of Return Calculation Method:</h3>
+        <h4>Mean Rate Method:</h4>
         if (Model.First().Portfolio.isSimple)
         {
-            <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
-            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px; display:inline;"/>@:Logarithmic
+            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px; display:inline;"/>@:Simple<br />
         }
         else
         {
-            <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
-            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+            <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px; display:inline;"/>@:Logarithmic
+            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 75px; display:inline;"/>@:Simple<br />
         }
 
-        <h3>Expected Annualized Rates of Return Calculation Method:</h3>
+        <h4>Expected Rate Method:</h4>
         if (Model.First().Portfolio.isCAPM)
         {
-            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" style="width:auto; margin:0 5px 0 50px"/>@:Historical
             <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
         }
         else
         {
-            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical
+            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 90px"/>@:CAPM<br />
         }
         
         <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
-        <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
+        <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px; margin-top:10px;" value="@Model.First().Portfolio.riskFreeRate" />
         <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
-        <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
+        <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px; margin-top:10px;" value="@Model.First().Portfolio.MRP"/>
     
-        <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block;" />
+        <input type="submit" class="btn btn-primary" onclick="$('#calculatingModal').modal('show');" value="Calculate Asset Statistics" style="display:block;" />
     }
     
     
@@ -206,6 +207,18 @@
 </table>
 </div>
 }
+<!-- Modal -->
+<div id="calculatingModal" class="modal hide fade">
+  <div class="modal-header">
+    <h3 id="calculatingModalLabel" style="display:inline;">Calculating...</h3>
+      <img src="~/Images/ajax-loader.gif" style="margin-left:25px;" />
+  </div>
+</div>
+<div id="successModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Success!</h3>
+  </div>
 
 @*<td>
     <form action="@Url.Action("Asset", "Portfolio")">
