@@ -2,27 +2,10 @@
 
 @{
     ViewBag.Title = "Risk Analysis";
-    DateTime StartDate = ViewBag.Date;
     double totalRiskAlloc = 0;
 }
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $("#date").datepicker({ dateFormat: "yy-mm-dd" });
-        $("#date").val("@StartDate.ToString("yyyy-MM-dd")");
-    });
-</script>
-
 <h2>Risk Analysis</h2>
-
-@using (Html.BeginForm("RiskAnalysis", "Portfolio", FormMethod.Get))
-{
-    <div class="editor-field">
-        @Html.Label("Pick starting date: ")
-        @Html.TextBox("date", null, new { id = "date" })
-    </div>
-    <input type="submit" value="See prices" />
-}
 <h4>Risk Allocation</h4>
 <table style="width:100%">
     <tr>

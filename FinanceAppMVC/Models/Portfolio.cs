@@ -22,5 +22,10 @@ namespace FinanceAppMVC.Models
         public double marketCorrelation { get; set; }
         public double beta { get; set; }
         public double sharpeRatio { get; set; }
+        public double riskFreeRate { get; set; }
+        public double MRP { get; set; }
+        public bool statsCalculated { get; set; }
+        public bool isCAPM { get; set; }
+        public bool isSimple { get; set; }
     }
 }

@@ -13,6 +13,14 @@
         HttpMethod = "POST",
         LoadingElementId = "loader"
     };
+
+    var ajaxOptions_AssetStats = new AjaxOptions
+    {
+        UpdateTargetId = "CalculateAssetStats",
+        HttpMethod = "POST",
+        LoadingElementId = "loader",
+        OnSuccess = "$('#TableContainer').load(location.href + ' #AssetTable');"
+    };
     int i = 0;
 }
 
@@ -27,7 +35,16 @@
             $("#portfolioStatistics").show();
         }
 
-        $("#Historical").attr('checked', 'checked');
+        if ($("#CAPM").attr('checked') == "checked")
+        {
+            $("label").css('visibility', 'visible');
+            marker = $('<span />').insertBefore('#MRP');
+            $('#MRP').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+            marker = $('<span />').insertBefore('#RiskFreeRate');
+            $('#RiskFreeRate').detach().attr('type', 'text').insertAfter(marker).focus();
+            marker.remove();
+        }
 
         $("#stats").bind("click", function ()
         {
@@ -96,21 +113,45 @@
 
 @if (Model.Count() > 0)
 {
-    <h3>Mean Rate of Return Calculation Method:</h3>
-    <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
-    <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+    using (Ajax.BeginForm("CalculateAssetStats", new { id = Model.ToList().First().PortfolioID, date = Model.ToList().First().Portfolio.DefaultStartDate.ToString() }, ajaxOptions_AssetStats))
+    { 
+        <h3>Mean Rate of Return Calculation Method:</h3>
+        if (Model.First().Portfolio.isSimple)
+        {
+            <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+            <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+        }
+        else
+        {
+            <input type="radio" name="meanRateMethod" value="Logarithmic" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+            <input type="radio" name="meanRateMethod" value="Simple" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+        }
 
-    <h3>Expected Annualized Rates of Return Calculation Method:</h3>
-    <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-    <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
-    <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
-    <input type="hidden" id="RiskFreeRate" class="input" name="expectedRateMethod" style="width:30px; margin-right:50px;"/>
-    <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
-    <input type="hidden" id="MRP" class="input" name="expectedRateMethod" style="width:30px;"/>
+        <h3>Expected Annualized Rates of Return Calculation Method:</h3>
+        if (Model.First().Portfolio.isCAPM)
+        {
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+        }
+        else
+        {
+            <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+            <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+        }
+        
+        <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
+        <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
+        <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
+        <input type="hidden" id="MRP" class="input" name="MRP" style="width:30px;" value="@Model.First().Portfolio.MRP"/>
+    
+        <input type="submit" value="Calculate Asset Statistics" style="display:block;" />
+    }
+
+
 
 }
-
-<table>
+<div id="TableContainer">
+<table id="AssetTable">
     <tr>
         <th>
             @Html.DisplayNameFor(model => model.Symbol)
@@ -130,10 +171,13 @@
                 @Html.DisplayFor(modelItem => item.Symbol)
             </td>
             <td>
-                <form action="@Url.Action("Asset", "Portfolio")">
-                    <input type="hidden" name="id" value="@item.ID" />
-                    <a href="javascript:void(0)" class="formAnchor">Details</a>
-                </form>
+                @if (item.Portfolio.statsCalculated)
+                {
+                    <form action="@Url.Action("Asset", "Portfolio")">
+                        <input type="hidden" name="id" value="@item.ID" />
+                        <a href="javascript:void(0)" class="formAnchor">Details</a>
+                    </form>
+                }
             </td>
             <td>
                 @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions)
@@ -144,7 +188,7 @@
                 </div>
             </td>
         </tr>
-        i++;
+                i++;
     }
 
     @if (Model.Count() > 0)
@@ -174,3 +218,4 @@
     }
 
 </table>
+    </div>

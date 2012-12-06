@@ -112,18 +112,56 @@ namespace FinanceAppMVC.Controllers
             {
                 return RedirectToAction("Index");
             }
+
             return PartialView("AssetList", portfolio.Assets.OrderBy(a => a.ID).ToList());
         }
 
-        public ActionResult Asset(int id, String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, String date = "")
+        [HttpPost]
+        public ActionResult CalculateAssetStats(String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, String date ="", int id = 0)
+        {
+            Portfolio portfolio = db.Portfolios.Include(p => p.Assets).Where(p => p.ID == id).FirstOrDefault();
+            List<Asset> assets = db.Assets.Include(a => a.Portfolio).Include(a => a.Prices).Where(a => a.PortfolioID == id).ToList();
+            DateTime startDate = DateTime.Parse(date);
+        
+            bool meanRateMethodIsSimple;
+
+            if (meanRateMethod.Equals("Simple"))
+                meanRateMethodIsSimple = true;
+            else
+                meanRateMethodIsSimple = false;
+
+            bool expectedRateMethodIsCAPM;
+
+            if (expectedRateMethod.Equals("CAPM"))
+                expectedRateMethodIsCAPM = true;
+            else
+                expectedRateMethodIsCAPM = false;
+
+            portfolio.isSimple = meanRateMethodIsSimple;
+            portfolio.isCAPM = expectedRateMethodIsCAPM;
+
+            if (riskFreeRate == null || MRP == null)
+            {
+                riskFreeRate = "0";
+                MRP = "0";
+            }
+
+            portfolio.riskFreeRate = Double.Parse(riskFreeRate);
+            portfolio.MRP = Double.Parse(MRP);
+
+            foreach (Asset asset in assets)
+            {
+                calculateAssetStats(asset, startDate, meanRateMethodIsSimple, expectedRateMethodIsCAPM, portfolio.riskFreeRate, portfolio.MRP);
+            }
+            portfolio.statsCalculated = true;
+            db.SaveChanges();
+            return AssetList(id);
+        }
+
+        public ActionResult Asset(int id, String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, String date = "", bool dateIsModified = false)
         {
             Asset asset = db.Assets.Include(a => a.Portfolio).Include(a => a.Prices).Where(a => a.ID == id).First();
             DateTime startDate;
-
-            if (date == "")
-                startDate = asset.Portfolio.DefaultStartDate;
-            else
-                startDate = DateTime.Parse(date);
 
             bool meanRateMethodIsSimple;
 
@@ -139,40 +177,19 @@ namespace FinanceAppMVC.Controllers
             else
                 expectedRateMethodIsCAPM = false;
 
-            /* Temporarily replace the asset's prices (all prices) with a list of prices starting 
-             * from the requested date. This does not affect anything in the database. */
-            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
-            queriedPrices.RemoveAt(0);
-            asset.Prices = queriedPrices;
+            if (riskFreeRate.Equals("") || MRP.Equals(""))
+            {
+                riskFreeRate = "0";
+                MRP = "0";
+            }
 
-            List<AssetPrice> riskFreeRates = getQuotes("^IRX").Where(p => p.Date >= startDate).ToList();
-            riskFreeRates.RemoveAt(0);
-            double meanRiskFreeRate = riskFreeRates.Sum(p => p.ClosePrice) / (riskFreeRates.Count);
-
-            List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
-            double expectedValue_Asset = calculateExpectedValue(queriedPrices, riskFreeRates, meanRateMethodIsSimple);
-            double expectedValue_Market = calculateExpectedValue(marketRates, riskFreeRates, meanRateMethodIsSimple);
-            double variance_Asset = calculateRiskFreeVariance(queriedPrices, riskFreeRates, expectedValue_Asset, meanRateMethodIsSimple);
-            double variance_Market = calculateRiskFreeVariance(marketRates, riskFreeRates, expectedValue_Market, meanRateMethodIsSimple);
-            double covariance = calculateCovariance(queriedPrices, marketRates, riskFreeRates, expectedValue_Asset, expectedValue_Market, meanRateMethodIsSimple);
-
-
-            asset.DailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
-
-            asset.DailyVariance = calculateVariance(queriedPrices, asset.DailyMeanRate, meanRateMethodIsSimple);
-            asset.AnnualizedVariance = asset.DailyVariance * 252;
-
-            asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
-            asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
-
-            asset.SharpeRatio = (expectedValue_Asset * queriedPrices.Count) / Math.Sqrt((variance_Asset * Math.Pow(queriedPrices.Count, 2)) / 252);
-            asset.Beta = covariance / variance_Market;
-            asset.HistoricalCorrelation = covariance / (Math.Sqrt(variance_Asset) * Math.Sqrt(variance_Market));
-
-            if (expectedRateMethodIsCAPM)
-                asset.AnnualizedMeanRate = Double.Parse(riskFreeRate) + (asset.Beta * Double.Parse(MRP));
+            if (date == "")
+                startDate = asset.Portfolio.DefaultStartDate;
             else
-                asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
+                startDate = DateTime.Parse(date);
+
+            if (dateIsModified)
+                calculateAssetStats(asset, startDate, meanRateMethodIsSimple, expectedRateMethodIsCAPM, Double.Parse(riskFreeRate), Double.Parse(MRP));
 
             ViewBag.Date = startDate;
 
@@ -187,13 +204,16 @@ namespace FinanceAppMVC.Controllers
             if (asset != null)
             {
                 portfolioID = asset.PortfolioID;
+                var portfolio = db.Portfolios.Find(portfolioID);
+                if (portfolio.Assets.Count == 1)
+                    portfolio.statsCalculated = false;
                 db.Assets.Remove(asset);
                 db.SaveChanges();
             }
             return AssetList(portfolioID);
         }
 
-        public ActionResult RiskAnalysis(String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, int id = 0, String date = "")
+        public ActionResult RiskAnalysis(String meanRateMethod, int id = 0)
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
             List<Asset> assets = portfolio.Assets.ToList();
@@ -208,56 +228,14 @@ namespace FinanceAppMVC.Controllers
             else
                 meanRateMethodIsSimple = false;
 
-            bool expectedRateMethodIsCAPM;
-            if (expectedRateMethod.Equals("CAPM"))
-                expectedRateMethodIsCAPM = true;
-            else
-                expectedRateMethodIsCAPM = false;
-
-            if (date == "")
-                startDate = portfolio.DefaultStartDate;
-            else
-                startDate = DateTime.Parse(date);
-
-            List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
-            marketRates.RemoveAt(0);
+            startDate = portfolio.DefaultStartDate;
 
             double totalInverseVolatility = 0;
             foreach (Asset asset in assets)
             {
-                List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
-                queriedPrices.RemoveAt(0);
-
-                asset.Prices = queriedPrices;
-
-                asset.DailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
-                if (expectedRateMethodIsCAPM)
-                {
-                    List<AssetPrice> riskFreeRates = getQuotes("^IRX").Where(p => p.Date >= startDate).ToList();
-                    riskFreeRates.RemoveAt(0);
-
-                    double expectedValue_Asset = calculateExpectedValue(queriedPrices, riskFreeRates, meanRateMethodIsSimple);
-                    double expectedValue_Market = calculateExpectedValue(marketRates, riskFreeRates, meanRateMethodIsSimple);
-                    double covariance = calculateCovariance(queriedPrices, marketRates, riskFreeRates, expectedValue_Asset, expectedValue_Market, meanRateMethodIsSimple);
-                    double variance = calculateRiskFreeVariance(queriedPrices, riskFreeRates, expectedValue_Asset, meanRateMethodIsSimple);
-                    double beta = covariance / variance;
-
-                    asset.AnnualizedMeanRate = Double.Parse(riskFreeRate) + (beta * Double.Parse(MRP));
-
-                }
-                else
-                    asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
-
-                asset.DailyVariance = calculateVariance(queriedPrices, asset.DailyMeanRate, meanRateMethodIsSimple);
-                asset.AnnualizedVariance = asset.DailyVariance * 252;
-
-                asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
-                asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
-
                 totalInverseVolatility += (1 / asset.AnnualizedStandardDeviation);
             }
 
-            ViewBag.Date = startDate;
             ViewBag.TotalInverseVolatility = totalInverseVolatility;
 
 
@@ -336,25 +314,13 @@ namespace FinanceAppMVC.Controllers
             else
                 meanRateMethodIsSimple = false;
 
-            bool expectedRateMethodIsCAPM;
-            if (expectedRateMethod.Equals("CAPM"))
-                expectedRateMethodIsCAPM = true;
-            else
-                expectedRateMethodIsCAPM = false;
-
-            DateTime startDate;
-            if (date == "")
-                startDate = portfolio.DefaultStartDate;
-            else
-                startDate = DateTime.Parse(date);
+           DateTime startDate = portfolio.DefaultStartDate;
 
             List<Asset> assets = portfolio.Assets.ToList();
             double val_MeanRateOfReturn = 0;
             double val_StandardDeviation = 0;
             double val_MarketCorrelation = 0;
-            double val_Covariance = 0;
             double val_Variance = 0;
-            double val_Sharpe = 0;
             double val_Beta = 0;
             double[,] covarianceMatrix = new double[assets.Count + 1, assets.Count + 1];
 
@@ -368,31 +334,15 @@ namespace FinanceAppMVC.Controllers
 
             foreach (Asset a in assets)
             {
-                List<AssetPrice> queriedPrices = a.Prices.Where(price => price.Date >= startDate).ToList();
-                queriedPrices.RemoveAt(0);
-                double dailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
-                double expectedValue_Asset = calculateExpectedValue(queriedPrices, riskFreeRates, meanRateMethodIsSimple);
-
-                a.AnnualizedStandardDeviation = Math.Sqrt(calculateVariance(queriedPrices, dailyMeanRate, meanRateMethodIsSimple) * 252);
 
                 val_StandardDeviation += a.AnnualizedStandardDeviation * a.Weight;
-                val_MarketCorrelation += calculateCovariance(queriedPrices, dailyMeanRate, marketRates, meanMarketRate, meanRateMethodIsSimple) * a.Weight;
-                val_Variance = calculateRiskFreeVariance(queriedPrices, riskFreeRates, expectedValue_Asset, meanRateMethodIsSimple);
-                val_Covariance = calculateCovariance(queriedPrices, marketRates, riskFreeRates, expectedValue_Asset, expectedValue_Market, meanRateMethodIsSimple);
-                val_Beta += (val_Covariance / val_Variance);
-
-                if (expectedRateMethodIsCAPM)
-                    a.AnnualizedMeanRate = Double.Parse(riskFreeRate) + (val_Beta * Double.Parse(MRP));
-                else
-                    a.AnnualizedMeanRate = dailyMeanRate * 252;
-
+                val_MarketCorrelation += a.Covariance * a.Weight;
                 val_MeanRateOfReturn += a.AnnualizedMeanRate * a.Weight;
-                val_Beta = val_Beta * a.Weight;
+                val_Beta = a.Beta * a.Weight;
             }
 
             portfolio.meanRateOfReturn = val_MeanRateOfReturn;
             portfolio.beta = val_Beta;
-            ViewBag.Date = startDate;
 
             //portfolio return variance
             val_Variance = 0;
@@ -401,7 +351,7 @@ namespace FinanceAppMVC.Controllers
                 for (int j = 0; j < assets.Count; j++)
                 {
                     List<AssetPrice> prices = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
-                    double meanRate = calculateDailyMeanRate(prices, meanRateMethodIsSimple);
+                    double meanRate = assets[j].DailyMeanRate;
                     if (i == assets.Count)
                     {
                         covarianceMatrix[i, j] = calculateCovariance(marketRates, expectedValue_Market,
@@ -429,6 +379,45 @@ namespace FinanceAppMVC.Controllers
             portfolio.sharpeRatio = portfolio.meanRateOfReturn / portfolio.standardDeviation;
 
             return View("PortfolioStatistics", portfolio);
+        }
+
+        private Asset calculateAssetStats(Asset asset, DateTime startDate, bool meanRateMethodIsSimple, bool expectedRateMethodIsCAPM, double riskFreeRate, double MRP)
+        {
+            List<AssetPrice> queriedPrices = asset.Prices.Where(p => p.Date >= startDate).ToList();
+            queriedPrices.RemoveAt(0);
+            //asset.Prices = queriedPrices;
+
+            List<AssetPrice> riskFreeRates = getQuotes("^IRX").Where(p => p.Date >= startDate).ToList();
+            riskFreeRates.RemoveAt(0);
+            double meanRiskFreeRate = riskFreeRates.Sum(p => p.ClosePrice) / (riskFreeRates.Count);
+
+            List<AssetPrice> marketRates = getQuotes("SPY").Where(p => p.Date >= startDate).ToList();
+            double expectedValue_Asset = calculateExpectedValue(queriedPrices, riskFreeRates, meanRateMethodIsSimple);
+            double expectedValue_Market = calculateExpectedValue(marketRates, riskFreeRates, meanRateMethodIsSimple);
+            double variance_Asset = calculateRiskFreeVariance(queriedPrices, riskFreeRates, expectedValue_Asset, meanRateMethodIsSimple);
+            double variance_Market = calculateRiskFreeVariance(marketRates, riskFreeRates, expectedValue_Market, meanRateMethodIsSimple);
+            double covariance = calculateCovariance(queriedPrices, marketRates, riskFreeRates, expectedValue_Asset, expectedValue_Market, meanRateMethodIsSimple);
+
+
+            asset.DailyMeanRate = calculateDailyMeanRate(queriedPrices, meanRateMethodIsSimple);
+
+            asset.DailyVariance = calculateVariance(queriedPrices, asset.DailyMeanRate, meanRateMethodIsSimple);
+            asset.AnnualizedVariance = asset.DailyVariance * 252;
+
+            asset.DailyStandardDeviation = Math.Sqrt(asset.DailyVariance);
+            asset.AnnualizedStandardDeviation = asset.DailyStandardDeviation * Math.Sqrt(252);
+
+            asset.Covariance = covariance;
+            asset.SharpeRatio = (expectedValue_Asset * queriedPrices.Count) / Math.Sqrt((variance_Asset * Math.Pow(queriedPrices.Count, 2)) / 252);
+            asset.Beta = covariance / variance_Market;
+            asset.HistoricalCorrelation = covariance / (Math.Sqrt(variance_Asset) * Math.Sqrt(variance_Market));
+
+            if (expectedRateMethodIsCAPM)
+                asset.AnnualizedMeanRate = riskFreeRate + (asset.Beta * MRP);
+            else
+                asset.AnnualizedMeanRate = asset.DailyMeanRate * 252;
+
+            return asset;
         }
 
         public ActionResult Optimize(int id, int minimumRateOfReturn, string date = "")
