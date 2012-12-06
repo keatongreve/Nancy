@@ -11,6 +11,8 @@ namespace PortfolioQuadraticOptimization.DataContracts
     {
         [DataMember]
         public double MinimumReturn { get; set; }
+		[DataMember]
+		public double Step { get; set; }
         [DataMember]
         public List<AssetData> Stocks { get; set; }
 

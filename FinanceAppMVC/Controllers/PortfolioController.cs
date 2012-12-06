@@ -434,6 +434,7 @@ namespace FinanceAppMVC.Controllers
 
             OptimizationData inputData = new OptimizationData();
             inputData.MinimumReturn = minimumRateOfReturn;
+			inputData.Step = 0.0001;
 
             List<AssetData> assetData = new List<AssetData>();
 
@@ -493,11 +494,41 @@ namespace FinanceAppMVC.Controllers
             {
                 return RedirectToAction("Index");
             }
+			
+			var request2 = WebRequest.Create("http://optimization.andrewgaspar.com/api/frontier");
+            request2.ContentType = "application/json";
+            request2.Method = "POST";
+            writer = new StreamWriter(request2.GetRequestStream());
+            json = JsonConvert.SerializeObject(inputData);
+            writer.Write(json);
+            writer.Close();
+			
+			OptimizationResult[] efficientFrontier = null;			
+			try
+            {
+                using (var response = request2.GetResponse())
+                {
+                    request2.GetRequestStream().Close();
+                    if (response != null)
+                    {
+                        using (var answerReader = new StreamReader(response.GetResponseStream()))
+                        {
+                            var readString = answerReader.ReadToEnd();
+                            efficientFrontier = JsonConvert.DeserializeObject<OptimizationResult[]>(readString);
+                        }
+                    }
+                }
+            }
+            catch (WebException e)
+            {
+                efficientFrontier = new OptimizationResult[0];
+			}
 
             ViewBag.Results = result.Results.ToDictionary(r => r.Symbol, r => r.Allocation);
             ViewBag.Feasible = result.Feasible;
             ViewBag.Optimal = result.Optimal;
             ViewBag.ExpectedRateOfReturn = result.ExpectedReturn;
+			ViewBag.EfficientFrontier = efficientFrontier;
 
             return View();
         }
