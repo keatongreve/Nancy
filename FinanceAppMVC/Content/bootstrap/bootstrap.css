@@ -944,6 +944,10 @@ legend {
   border-bottom: 1px solid #e5e5e5;
 }
 
+legend.hide {
+    display: none;
+}
+
 legend small {
   font-size: 15px;
   color: #999999;

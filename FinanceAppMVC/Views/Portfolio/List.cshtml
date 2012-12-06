@@ -8,7 +8,7 @@
         Confirm = "Are you sure you want to delete this portfolio?",
         HttpMethod = "POST",
         LoadingElementId = "loader",
-        OnComplete = "$('table').rowlink()"
+        OnComplete = "$('table.table').rowlink()"
     };
 }
 
@@ -20,7 +20,7 @@
 <table class="table table-striped table-hover" data-provides="rowlink">
     @foreach (var item in Model) {
         <tr>
-            <td class="rowlink" style="width:100%">@Html.ActionLink(item.PortfolioName, "Details", new { id=item.ID })</td>
+            <td class="rowlink" style="width:100%"><h4>@Html.ActionLink(item.PortfolioName, "Details", new { id=item.ID })</h4></td>
             <td class="nolink" style="text-align:right">@Ajax.RawActionLink("<i class=\"icon-trash icon-white\"></i>", "Delete", new { id=item.ID }, options, new { @class = "btn btn-danger" })</td>
         </tr>
     }

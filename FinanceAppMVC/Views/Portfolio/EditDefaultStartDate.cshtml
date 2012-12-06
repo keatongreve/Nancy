@@ -2,10 +2,7 @@
 
 @{
     var options = new AjaxOptions {
-      Url = Url.Action("EditDefaultStartDate", "Portfolio"),
-      UpdateTargetId = "AssetList",
       HttpMethod = "POST",
-      LoadingElementId = "loader2",
       OnSuccess = "EditDateSuccessCallback"
     };
 }
@@ -33,25 +30,20 @@
     }
 </script>
 
-<h3>Edit Default Start Date</h3>
-@using (Ajax.BeginForm(options)) {
+<h4>Edit Start Date</h4>
+@using (Ajax.BeginForm("EditDefaultStartDate", "Portfolio", options))
+{
     @Html.ValidationSummary(true)
 
     <fieldset>
-        <legend>Asset</legend>
+        <legend class="hide">Assets</legend>
 
-        <div class="editor-field">            
+        <div class="input-append" >            
             @Html.EditorFor(model => model.DefaultStartDate)
             @Html.ValidationMessageFor(model => model.DefaultStartDate)
+            <input id="save_date" class="btn btn-primary" style="display:inline" type="submit" value="Save" />
         </div>
 
         @Html.HiddenFor(model => model.ID)
-        @Html.HiddenFor(model => model.DateCreated)
-
-        <input id="save_date" type="submit" value="Save" />
-
-        <div id="loader2" style="display: none">
-            <img src="~/Images/ajax-loader.gif" />
-        </div>
     </fieldset>
 }

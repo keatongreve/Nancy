@@ -1,4 +1,5 @@
-﻿@model IEnumerable<FinanceAppMVC.Models.Asset>
+﻿@using FinanceAppMVC.Extensions
+@model IEnumerable<FinanceAppMVC.Models.Asset>
 @{
     int portfolioID = 0;
     if (Model.Count() > 0)
@@ -11,7 +12,8 @@
         UpdateTargetId = "AssetList",
         Confirm = "Are you sure you want to delete this asset?",
         HttpMethod = "POST",
-        LoadingElementId = "loader"
+        LoadingElementId = "asset-delete-loader",
+        OnComplete = "$('table').rowlink()"
     };
     int i = 0;
 }
@@ -90,74 +92,76 @@
     });
 </script>
 
-<div id="loader" style="display: none">
-    <img src="~/Images/ajax-loader.gif" /></div>
-<h2>My Assets</h2>
-
 @if (Model.Count() > 0)
-{
-    <h3>Mean Rate of Return Calculation Method:</h3>
-    <input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
-    <input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
+{    
+<h3>My Assets</h3>
+    
+<h4>Mean Rate of Return Calculation Method:</h4>
+<input type="radio" name="meanRateMethod" value="Simple" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Simple<br />
+<input type="radio" name="meanRateMethod" value="Logarithmic" style="width:auto; margin:0 5px 0 50px"/>@:Logarithmic<br />
 
-    <h3>Expected Annualized Rates of Return Calculation Method:</h3>
-    <input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
-    <input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
-    <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
-    <input type="hidden" id="RiskFreeRate" class="input" name="expectedRateMethod" style="width:30px; margin-right:50px;"/>
-    <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
-    <input type="hidden" id="MRP" class="input" name="expectedRateMethod" style="width:30px;"/>
-
-}
-
-<table>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Symbol)
-        </th>
-        <th></th>
-        <th></th>
-        @if (Model.Count() > 0)
-        {
+<h4>Expected Annualized Rates of Return Calculation Method:</h4>
+<input type="radio" name="expectedRateMethod" id="Historical" value="Historical" checked="checked" style="width:auto; margin:0 5px 0 50px"/>@:Historical<br />
+<input type="radio" name="expectedRateMethod" id="CAPM" value="CAPM" style="width:auto; margin:0 5px 0 50px"/>@:CAPM<br />
+<label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
+<input type="hidden" id="RiskFreeRate" class="input" name="expectedRateMethod" style="width:30px; margin-right:50px;"/>
+<label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
+<input type="hidden" id="MRP" class="input" name="expectedRateMethod" style="width:30px;"/>
+    
+<table class="table table-striped table-hover" data-provides="rowlink">
+    <thead>
+        <tr class="nolink">
+            <th>
+                @Html.DisplayNameFor(model => model.Symbol)
+            </th>
             <th>Weight</th>
-        }
-    </tr>
-
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
     @foreach (var item in Model)
     {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Symbol)
-            </td>
-            <td>
-                <form action="@Url.Action("Asset", "Portfolio")">
-                    <input type="hidden" name="id" value="@item.ID" />
-                    <a href="javascript:void(0)" class="formAnchor">Details</a>
-                </form>
-            </td>
-            <td>
-                @Ajax.ActionLink("Delete", "DeleteAsset", new { id = item.ID }, ajaxOptions)
-            </td>
-            <td>
+            <td class="rowlink" style="width:100%">
+                <h4>@Html.ActionLink(item.Symbol, "Details", new { id=item.ID })</h4>
+            </td>           
+            <td class="nolink">
                 <div class="editor-field">
                     <input type="text" id="@String.Format("{0}", item.Symbol)" style="width:50px;" value="@item.Weight" />
                 </div>
             </td>
+            <td class="nolink" style="text-align:right">
+                @Ajax.RawActionLink("<i class=\"icon-trash icon-white\"></i>", "DeleteAsset", new { id=item.ID }, ajaxOptions, new { @class = "btn btn-danger" })
+            </td>
         </tr>
         i++;
     }
+    </tbody>
+    <tfoot>
+        <tr class="nolink">
+            <td></td>
+            <td>
+                <button id="stats" class="btn btn-primary">Save</button>
+            </td>
+            <td>
+                <div id="asset-delete-loader" style="display: none">
+                    <img src="~/Images/ajax-loader.gif" />
+                </div>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+}
 
-    @if (Model.Count() > 0)
-    {     
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>
-            <button id="stats">Save</button>
-        </td>
-    </tr>
-    <tr>
+
+@*<td>
+    <form action="@Url.Action("Asset", "Portfolio")">
+        <input type="hidden" name="id" value="@item.ID" />
+        <a href="javascript:void(0)" class="formAnchor">Details</a>
+    </form>
+</td> 
+
+    <tr class="nolink">
         <td colspan="3">
             <form action="@Url.Action("RiskAnalysis", "Portfolio")">
                     <input type="hidden" name="id" value="@portfolioID" />
@@ -170,7 +174,4 @@
                     <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Portfolio Statistics</a>
                 </form>
         </td>
-    </tr>
-    }
-
-</table>
+    </tr>*@
