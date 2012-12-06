@@ -6,7 +6,7 @@
       UpdateTargetId = "AssetList",
       HttpMethod = "POST",
       LoadingElementId = "loader",
-      OnSuccess="$('table').rowlink()"
+      OnSuccess="$('#Symbol').val('');"
     };
 }
 
@@ -38,7 +38,7 @@
             },
             select: function (event, ui) {
                 symbol = ui.item.value;
-                $("#Symbol").val(symbol.substring(0, symbol.indexOf("-") - 1));
+                $("#Symbol").val(symbol.substring(0, symbol.indexOf(" ")));
                 return false;
             }
         });

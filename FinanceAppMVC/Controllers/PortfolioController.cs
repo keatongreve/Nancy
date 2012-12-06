@@ -33,7 +33,7 @@ namespace FinanceAppMVC.Controllers
         // GET: /Portfolio/Details/5
         public ActionResult Details(int id = 0)
         {
-            Portfolio portfolio = db.Portfolios.Find(id);
+            Portfolio portfolio = db.Portfolios.Include(p => p.Assets).Where(x => x.ID == id).FirstOrDefault();
             if (portfolio == null)
             {
                 return RedirectToAction("Index");
@@ -204,7 +204,7 @@ namespace FinanceAppMVC.Controllers
             if (asset != null)
             {
                 portfolioID = asset.PortfolioID;
-                var portfolio = db.Portfolios.Find(portfolioID);
+                var portfolio = db.Portfolios.Include(p => p.Assets).Where(x => x.ID == asset.PortfolioID).FirstOrDefault();
                 if (portfolio.Assets.Count == 1)
                     portfolio.statsCalculated = false;
                 db.Assets.Remove(asset);
