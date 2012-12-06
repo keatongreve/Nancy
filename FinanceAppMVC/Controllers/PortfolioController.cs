@@ -428,6 +428,26 @@ namespace FinanceAppMVC.Controllers
 			inputData.Step = 0.0001;
 
             List<AssetData> assetData = new List<AssetData>();
+            List<Asset> assets = portfolio.Assets.ToList();
+
+            double[,] covarianceMatrix = new double[assets.Count, assets.Count];
+            double[,] correlationMatrix = new double[assets.Count, assets.Count];
+
+            bool meanRateMethodIsSimple = portfolio.isSimple;
+
+            startDate = portfolio.DefaultStartDate;
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                for (int j = 0; j < assets.Count; j++)
+                {
+                    List<AssetPrice> prices_i = assets[i].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    List<AssetPrice> prices_j = assets[j].Prices.Where(p => p.Date >= startDate.AddDays(1)).ToList();
+                    double covariance = calculateCovariance(prices_i, assets[i].DailyMeanRate, prices_j, assets[j].DailyMeanRate, meanRateMethodIsSimple);
+
+                    covarianceMatrix[i, j] = covariance;
+                }
+            }
 
             foreach (Asset a in portfolio.Assets)
             {
@@ -519,9 +539,12 @@ namespace FinanceAppMVC.Controllers
                 double portfolioVariance = 0;
                 for (int i = 0; i < solution.Results.Count; i++)
                 {
-                    portfolioVariance += variances.ElementAt(i) * solution.Results.ElementAt(i).Allocation;
+                    for (int j = 0; j < solution.Results.Count; j++)
+                    {
+                        portfolioVariance += solution.Results.ElementAt(i).Allocation * solution.Results.ElementAt(j).Allocation * covarianceMatrix[i, j];
+                    }
                 }
-                solution.StandardDeviation = Math.Sqrt(portfolioVariance);
+                solution.StandardDeviation = Math.Sqrt(portfolioVariance * 252);
             }
 
             ViewBag.Results = result.Results.ToDictionary(r => r.Symbol, r => r.Allocation);
