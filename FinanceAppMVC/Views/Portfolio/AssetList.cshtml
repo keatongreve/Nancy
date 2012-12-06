@@ -113,7 +113,7 @@
 {
     using (Ajax.BeginForm("CalculateAssetStats", new { id = Model.ToList().First().PortfolioID, date = Model.ToList().First().Portfolio.DefaultStartDate.ToString() }, ajaxOptions_AssetStats))
     { 
-        <h3>Mean Rate of Return Calculation Method:</h3>
+        <h4>Mean Rate of Return Calculation Method:</h4>
     
         <div class="btn-group container" data-toggle="buttons-radio">            
             <button type="button" name="meanRateMethodRadio" value="Logarithmic" class="btn btn-primary active">Logarithmic</button>
@@ -144,14 +144,14 @@
             });
         </script>
 
-        <h3>Expected Annualized Rates of Return Calculation Method:</h3>
+        <h4>Expected Annualized Rates of Return Calculation Method:</h4>
             
         <div class="container">
             <div class="btn-group" data-toggle="buttons-radio">            
                 <button type="button" name="expectedRateMethodRadio" id="Historical" value="Historical" class="btn btn-primary active">Historical</button>
                 <button type="button" name="expectedRateMethodRadio" id="CAPM" value="CAPM" class="btn btn-primary">CAPM</button>
             </div>
-            <div style="margin-top:5px">
+            <div style="margin-top:10px">
                 <label for="RiskFreeRate" id="RiskFreeRate_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">Risk Free Rate: </label>
                 <input type="hidden" id="RiskFreeRate" class="input" name="riskFreeRate" style="width:30px; margin-right:50px;" value="@Model.First().Portfolio.riskFreeRate" />
                 <label for="MRP" id="MRP_Label" style="display:inline; font-size:1em; font-weight:400; visibility:hidden">MRP: </label>
@@ -188,7 +188,7 @@
             });
         </script>
         
-        <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block;" />
+        <input type="submit" class="btn btn-primary" value="Calculate Asset Statistics" style="display:block;margin-top:20px" />
         <div id="loader2" style="display:none;">
             <img src="~/Images/ajax-loader.gif" />
         </div>  
@@ -261,33 +261,26 @@
     </tfoot>
 </table>
 </div>
-}
-
-@*<td>
-    <form action="@Url.Action("Asset", "Portfolio")">
-        <input type="hidden" name="id" value="@item.ID" />
-        <a href="javascript:void(0)" class="formAnchor">Details</a>
-    </form>
-</td> 
-
-    <tr class="nolink">
-        <td colspan="3">
-            <form action="@Url.Action("RiskAnalysis", "Portfolio")">
-                    <input type="hidden" name="id" value="@portfolioID" />
-                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Risk Analysis</a>
-                </form>
-        </td>
-        <td id="portfolioStatistics" style="display:none">
-            <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
-                    <input type="hidden" name="id" value="@portfolioID" />
-                    <a href="javascript:void(0)" class="formAnchor" style="font-size:medium; font-weight:700;">View Portfolio Statistics</a>
-                </form>
-        </td>
-<<<<<<< HEAD
-    </tr>
-    }
-
-</table>
+    
+<div class="offset1" style="display:inline-block">
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("PortfolioStatistics", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="View Portfolio Statistics" style="font-size:large" />
+        </form>
     </div>
-=======
-    </tr>*@
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("RiskAnalysis", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="View Risk Analysis" style="font-size:large"/>
+        </form>
+    </div>
+    <div style="float:left;margin-right:20px;">
+        <form action="@Url.Action("Optimize", "Portfolio")">
+            <input type="hidden" name="id" value="@portfolioID" />
+            <input type="submit" class="btn btn-info" value="Optimize Portfolio" style="font-size:large" />
+        </form>
+    </div>
+</div>
+    
+}

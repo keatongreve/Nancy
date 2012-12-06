@@ -31,7 +31,7 @@
     string resultData = "";
     foreach (AssetResult r in entry.Results)
     {
-        resultData += String.Format("{0}-{1:F4},", r.Symbol, r.Allocation);
+        resultData += String.Format("{0}-{1:F4}, ", r.Symbol, r.Allocation);
     }
-    <p>@String.Format("{0}: {1}, MeanRate = {2:P4}", i, resultData, entry.ExpectedReturn)</p>
+    <p>@String.Format("{0}: {1} MeanRate = {2:P4}", i, resultData, entry.ExpectedReturn)</p>
 }

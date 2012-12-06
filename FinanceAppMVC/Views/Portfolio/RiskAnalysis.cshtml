@@ -7,17 +7,16 @@
 
 <h2>Risk Analysis</h2>
 <h4>Risk Allocation</h4>
-<table style="width:100%">
-    <tr>
-        <th>
-            Asset
-        </th>
-        <th>Annualized Mean Rate</th>
-        <th>Annualized Std Dev</th>
-        <th>
-            Risk Allocation %
-        </th>
-    </tr>
+<table class="table table-striped" style="width:100%">
+    <thead>
+        <tr>
+            <th>Asset</th>
+            <th>Annualized Mean Rate</th>
+            <th>Annualized Std. Dev.</th>
+            <th>Risk Allocation %</th>
+        </tr>
+    </thead>
+    <tbody>
 @foreach (var asset in Model)
 {
     <tr>
@@ -39,17 +38,20 @@
         </td>
     </tr>
 }
-    <tr>
-        <td></td>
-        <td></td>     
-        <td>
-            @(String.Format("{0:P2}", totalRiskAlloc))
-        </td>
-        <td></td>
-    </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td></td>
+            <td></td>     
+            <td>
+                @(String.Format("{0:P2}", totalRiskAlloc))
+            </td>
+            <td></td>
+        </tr>
+    </tfoot>
 </table>
 <h4>Covariances</h4>
-<table style="width:100%">
+<table class="table table-striped" style="width:100%">
 @{
     <tr>
         <th></th>
@@ -78,7 +80,7 @@
 }
 </table>
 <h4>Correlations</h4>
-<table style="width:100%">
+<table class="table table-striped" style="width:100%">
 @{
     <tr>
         <th></th>

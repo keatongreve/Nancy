@@ -213,7 +213,7 @@ namespace FinanceAppMVC.Controllers
             return AssetList(portfolioID);
         }
 
-        public ActionResult RiskAnalysis(String meanRateMethod, int id = 0)
+        public ActionResult RiskAnalysis(int id = 0)
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
             List<Asset> assets = portfolio.Assets.ToList();
@@ -222,11 +222,7 @@ namespace FinanceAppMVC.Controllers
             double[,] covarianceMatrix = new double[assets.Count, assets.Count];
             double[,] correlationMatrix = new double[assets.Count, assets.Count];
 
-            bool meanRateMethodIsSimple;
-            if (meanRateMethod.Equals("Simple"))
-                meanRateMethodIsSimple = true;
-            else
-                meanRateMethodIsSimple = false;
+            bool meanRateMethodIsSimple = portfolio.isSimple;
 
             startDate = portfolio.DefaultStartDate;
 
@@ -303,16 +299,10 @@ namespace FinanceAppMVC.Controllers
             }
         }
 
-        public ActionResult PortfolioStatistics(int id, String meanRateMethod, String expectedRateMethod, String riskFreeRate, String MRP, String date = "")
+        public ActionResult PortfolioStatistics(int id, String date = "")
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
-
-            bool meanRateMethodIsSimple;
-
-            if (meanRateMethod.Equals("Simple"))
-                meanRateMethodIsSimple = true;
-            else
-                meanRateMethodIsSimple = false;
+            bool meanRateMethodIsSimple = portfolio.isSimple;
 
            DateTime startDate = portfolio.DefaultStartDate;
 
@@ -420,7 +410,7 @@ namespace FinanceAppMVC.Controllers
             return asset;
         }
 
-        public ActionResult Optimize(int id, int minimumRateOfReturn, string date = "")
+        public ActionResult Optimize(int id, int minimumRateOfReturn = 0, string date = "")
         {
             Portfolio portfolio = db.Portfolios.Include("Assets.Prices").Where(p => p.ID == id).FirstOrDefault();
 

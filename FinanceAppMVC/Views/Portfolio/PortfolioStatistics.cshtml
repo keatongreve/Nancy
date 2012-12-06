@@ -84,20 +84,21 @@
 
 <h2>@Model.PortfolioName</h2>
     
-    <table border="1" width="100%">
-        <tr>
-            <th>Mean Rate of Return</th>
-            <th>Standard Deviation</th>
-            <th>Market Correlation</th>
-            <th>Sharpe Ratio</th>
-            <th>Beta</th>
-        </tr>
-        <tr>
-            <td>@String.Format("{0:P}", Model.meanRateOfReturn)</td>
-            <td>@String.Format("{0:P}", Model.standardDeviation)</td>
-            <td>@String.Format("{0:F4}", Model.marketCorrelation)</td>
-            <td>@String.Format("{0:F4}", Model.sharpeRatio)</td>
-            <td>@String.Format("{0:F4}", Model.beta)</td>
-        </tr>
-    </table>
+<table class="table table-striped" style="width:100%">
+    <tr>
+        <th>Mean Rate of Return</th>
+        <th>Standard Deviation</th>
+        <th>Market Correlation</th>
+        <th>Sharpe Ratio</th>
+        <th>Beta</th>
+    </tr>
+    <tr>
+        <td>@String.Format("{0:P}", Model.meanRateOfReturn)</td>
+        <td>@String.Format("{0:P}", Model.standardDeviation)</td>
+        <td>@String.Format("{0:F4}", Model.marketCorrelation)</td>
+        <td>@String.Format("{0:F4}", Model.sharpeRatio)</td>
+        <td>@String.Format("{0:F4}", Model.beta)</td>
+    </tr>
+</table>
+
 <div id="scatterPlotContainer" style="width: 100%; padding: 10px 0px; height: 400px"></div>
